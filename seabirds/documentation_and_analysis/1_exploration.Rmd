@@ -413,3 +413,14 @@ bird_counts_clean %>%
 If group by common_name only, now 153 rows, some with common_names including various different possible birds (separated by / ). However, **Wandering albatross has the most individual sightings** by far, so I assume that this answer won't change even if I try to deal with the not-quite-specified birds.
 
 Note, if group only by common_name, there are 150 rows, which indicates there are 3 rows for which common name : sci name : species abbreviation is not 1:1:1 relationship (e.g. Adelie Penguin). I can come back to inspect this later, if time. For now, looking at the top values, I don't think it will change my result.
+
+## Find all the penguins
+
+```{r}
+bird_counts_clean %>% 
+  filter(str_detect(bird_counts_clean$common_name, "(?i)[P]enguin") == TRUE) %>% 
+  group_by(common_name) %>% 
+  summarise(total_sightings = sum(count)) %>% 
+  arrange(desc(total_sightings))
+```
+

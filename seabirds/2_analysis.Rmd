@@ -4,9 +4,10 @@ output: html_notebook
 ---
 
 ```{r}
-bird_counts <- read_csv("clean_data/bird_counts_raw.csv")
+bird_counts <- read_csv("clean_data/bird_counts_raw.csv") # to check "before cleaning" answers
+bird_counts_clean <- read_csv("clean_data/bird_counts_cleaned.csv")
 
-glimpse(bird_counts)
+glimpse(bird_counts_clean)
 ```
 
 ## Most individual sightings
@@ -16,9 +17,10 @@ _Task: Which bird had the most individual sightings? Give the bird’s common na
 Look for most frequent bird, where count = 1.
 
 ```{r}
+# using data before cleaning
 bird_counts %>% 
   filter(count == 1) %>%  # 20,357 individual sightings
-  group_by(species_abbreviation) %>% 
+  group_by(common_name) %>% 
   summarise(lone_sightings = n()) %>% 
   arrange(desc(lone_sightings)) # 298 rows
 ```
@@ -29,35 +31,82 @@ So, I do need to clean up these names to get a true total count per bird.
 
 ```{r}
 # after cleaning common_name column:
-bird_counts_cleaned %>% 
+bird_counts_clean %>% 
   filter(count == 1) %>%  # 20,357 individual sightings
-  group_by(common_name, sci_name, species_abbreviation_clean) %>% 
+  group_by(common_name, sci_name, species_abbreviation) %>% 
   summarise(lone_sightings = n()) %>% 
   arrange(desc(lone_sightings)) 
 ```
-If group by common_name only, now 150 rows, some with common_names including various different possible birds (separated by / ). However, wandering albatross has the most individual sightings by far, so I assume that this answer won't change even if I try to deal with the not-quite-specified birds.
+If group by common_name only, now 151 rows, some with common_names including various different possible birds (separated by / , e.g. "Shy / white-capped / Salvin's / Chatham mollymawk"). 
 
-If group by all 3 name columns, 202 rows, which indicates common name : sci name : species abbreviation is not 1:1:1 relationship. In error: Adelie Penguin might have multiple matches.
-
-
-
-Also, the cleaning step worked, so I will write a function for this, to repeat over all 3 name columns
+However, **Wandering albatross (Diomedea antipodensis / exulans; DIOANTEXU) has the most individual sightings** by far, so I assume that this answer won't change even if I try to deal with the not-quite-specified birds.
 
 ## Highest total count of sightings
 
 _Task: Which bird had the highest total count? Give the bird’s common name, scientific name and species abbreviation._
 
-
+```{r}
+bird_counts_clean %>% 
+  group_by(common_name, sci_name, species_abbreviation) %>% 
+  summarise(total_sightings = sum(count)) %>% 
+  arrange(desc(total_sightings)) 
+```
+The **Black-billed gull (Larus bulleri; LARBUL)** has the highest total count of sightings (**7732** birds counted).
 
 ## Birds sighted alone
 
 _Task: How many different types of birds were only ever seen in groups of 1?_
 
+```{r}
+distinct_lone_bird_types_cn <- bird_counts_clean %>% 
+  filter(count == 1) %>% 
+  select(common_name) %>% 
+  distinct()
 
+distinct_lone_bird_types_sn <- bird_counts_clean %>% 
+  filter(count == 1) %>% 
+  select(sci_name) %>% 
+  distinct()
+
+distinct_lone_bird_types_sa <- bird_counts_clean %>% 
+  filter(count == 1) %>% 
+  select(species_abbreviation) %>% 
+  distinct()
+
+nrow(distinct_lone_bird_types_cn)
+nrow(distinct_lone_bird_types_sn)
+nrow(distinct_lone_bird_types_sa)
+```
+
+Depending on how you determine "bird type", there are **about 150 different bird types** that were spotted alone. Specifically, by "common name", 150; by "scientific name", 142; and by "species_abbreviation", 149.
+
+_These differences may be an artefact from dirty data or a cleaning step - perhaps these should all be the same number._
 
 ## Penguin sightings
 
 _Task: How many penguins were seen? (Hint: there are many types of penguin)_
 
+```{r}
+# find all the types of penguins, regardless of sightings
+penguins <- bird_counts_clean %>% 
+  filter(str_detect(bird_counts_clean$common_name, "(?i)[P]enguin") == TRUE) %>% 
+  distinct(common_name)
+penguins
 
+# find all the penguins in the dataset, remove the NAs in count to ensure sums count all sightings
+penguin_sightings <- bird_counts_clean %>% 
+  filter(str_detect(bird_counts_clean$common_name, "(?i)[P]enguin") == TRUE) %>% 
+  group_by(common_name) %>% 
+  summarise(total_sightings = sum(count, na.rm = TRUE)) %>% 
+  arrange(desc(total_sightings))
+penguin_sightings
 
+# count the number of types of penguins that were sighted
+nrow(penguin_sightings) # all 7 types were sighted
+
+# sum the sightings of all the penguins to find total sightings
+penguin_sightings %>% 
+  summarise(total_sightings = sum(total_sightings, na.rm = TRUE))
+```
+
+There were **158 penguins, of 7 different types** sighted overall.
