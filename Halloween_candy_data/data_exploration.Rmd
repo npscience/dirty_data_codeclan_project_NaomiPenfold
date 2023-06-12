@@ -1,0 +1,23 @@
+---
+title: "Data exploration"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+```
+
+
+```{r}
+excel_sheets("data/boing-boing-candy-2015.xlsx")
+excel_sheets("data/boing-boing-candy-2016.xlsx")
+excel_sheets("data/boing-boing-candy-2017.xlsx")
+```
+
+```{r}
+x2015 <- read_excel("data/boing-boing-candy-2015.xlsx", sheet = "Form Responses 1")
+x2016 <- read_excel("data/boing-boing-candy-2016.xlsx", sheet = "Form Responses 1")
+x2017 <- read_excel("data/boing-boing-candy-2017.xlsx", sheet = "responses (2) (1).csv")
+```
+
