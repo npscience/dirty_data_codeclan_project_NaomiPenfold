@@ -11,14 +11,14 @@ library(janitor)
 # Load in raw data
 
 ```{r}
-sheet_names <- excel_sheets("data/seabirds.xls")
+sheet_names <- excel_sheets(here::here("raw_data/seabirds.xls"))
 ```
 
 ```{r}
-ship_data <- read_excel("data/seabirds.xls", sheet = "Ship data by record ID")
-bird_data <- read_excel("data/seabirds.xls", sheet = "Bird data by record ID")
-ship_codes <- read_excel("data/seabirds.xls", sheet = "Ship data codes")
-bird_codes <- read_excel("data/seabirds.xls", sheet = "Bird data codes")
+ship_data <- read_excel(here::here("raw_data/seabirds.xls"), sheet = "Ship data by record ID")
+bird_data <- read_excel(here::here("raw_data/seabirds.xls"), sheet = "Bird data by record ID")
+ship_codes <- read_excel(here::here("raw_data/seabirds.xls"), sheet = "Ship data codes")
+bird_codes <- read_excel(here::here("raw_data/seabirds.xls"), sheet = "Bird data codes")
 ```
 
 Note the error this flagged - it may mean that there is a column that contains mixed type data, or that data has spilled across columns. Tbc when I inspect the subset of data I need for this analysis.
@@ -58,19 +58,23 @@ bird_counts <- bird_counts %>%
 glimpse(bird_counts)
 
 # write subset of raw data to new csv file to continue with in next cleaning script
-write_csv(bird_counts, "data/bird_counts_raw.csv")
+# write_csv(bird_counts, "data/bird_counts_raw.csv")
 ```
 * Note that text columns are character type, numeric columns are <dbl>. This means any NAs or missing values in numeric columns are standard NAs, blanks or numbers - i.e. no entries written in as 'none' for example.
-
-```{r}
-bird_counts
-```
 
 
 ## Cleaning tasks: initial plan
 
-* Numeric data:
-  * check min and max make sense for latitudes and counts
+[ ] Find missing values
+  [x] Find standard NAs for all
+  * check for non-standard: written text, 0s and numbers outside reasonable range.
+  * blanks: from codes data, expect:
+    * blanks for missing latitude values 
+    * [NO BIRDS RECORDED] in common_name (and _NA_ in sci_name and species_abbreviation) for observations with no sightings
+
+[x] Numeric data:
+  [x] check min and max make sense for latitudes and counts
+  [x] check record ids, to ensure we have kept all sightings after the join: expect 1083001 - 85030012 for both birds and ships data
 
 * Common name: 
   * remove 'sensu lato' =  latin for "in the broad sense"
@@ -86,6 +90,79 @@ bird_counts
   * Some NAs
   * Several with "/" - unidentified / not sure which. Decide whether to keep.
   
-  
-  
+## Cleaning tasks: exploration
+
+### Find standard NAs
+```{r}
+bird_counts %>% 
+  summarise(across(.cols = everything(),
+                   .fns = ~ sum(is.na(.x))))
+```
+
+### Check numeric ranges
+```{r}
+min_lat <- bird_counts %>% 
+  select(lat) %>% 
+  filter(!is.na(lat)) %>% 
+  min()
+
+max_lat <- bird_counts %>% 
+  select(lat) %>% 
+  filter(!is.na(lat)) %>% 
+  max()
+
+min_count <- bird_counts %>% 
+  select(count) %>% 
+  filter(!is.na(count)) %>% 
+  min()
+
+max_count <- bird_counts %>% 
+  select(count) %>% 
+  filter(!is.na(count)) %>% 
+  max()
+
+min_id <- bird_counts %>% 
+  select(record_id) %>% 
+  min()
+
+max_id <- bird_counts %>% 
+  select(record_id) %>% 
+  max()
+
+min_lat
+max_lat
+min_count
+max_count
+min_id
+max_id
+```
+#### Latitude
+Latitude ranges -69 to -19, which is within normal range for latitudes in Souther hemisphere (from ship codes data: "S hemisphere: -90 to 0").
+
+#### Count
+Counts range from 1 to 99,999. This upper limit seems unreasonable - inspect the top counts data:
+
+```{r}
+bird_counts %>% 
+  filter(!is.na(count)) %>% 
+  arrange(desc(count)) %>% 
+  head(n = 50)
+```
+Six records with 99,999 as count (mostly puffins), then several records with 10,000 - 50,000. The bird codes data notes that count is "Total no of individuals counted in 10 min (1 – 50,000; 99999 = over 100,000). Therefore, these high values are real, do not discount as errors / missing values. However, do take this encoding into account when calculating counts (at least <calculated value>).
+
+#### Record ID
+
+We expect to have record IDs from 1083001 - 85030012; we have 1083001 (correct lower limit) to 88007036 (higher than expected max).
+
+Inspect IDs above the expected upper limit:
+
+```{r}
+bird_counts %>% 
+  filter(record_id >= 85030012) 
+```
+
+There are 8,869 bird sightings above the expected upper limit for record ID, as per the codes data - this looks real, and I assume more data has been collected since the codes data sheets were written.
+
+
+
   
