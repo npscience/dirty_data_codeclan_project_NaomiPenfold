@@ -1,9 +1,9 @@
 # Seabird sightings
 
 This is the README for the Seabirds data cleaning project, with information:
-* [About the project](## About the project)
-* [The structure of this repo](## Files) and the files within
-* [Notes on the process](## Process notes), i.e. what to expect within each script / notebook
+* [About the project](#About-the-project)
+* [The structure of this repo](#Files) and the files within
+* [Notes on the process](#Process-notes), i.e. what to expect within each script / notebook
 
 ## About the project
 
