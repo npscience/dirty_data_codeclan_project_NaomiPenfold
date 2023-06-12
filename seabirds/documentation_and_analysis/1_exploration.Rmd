@@ -63,32 +63,44 @@ glimpse(bird_counts)
 * Note that text columns are character type, numeric columns are <dbl>. This means any NAs or missing values in numeric columns are standard NAs, blanks or numbers - i.e. no entries written in as 'none' for example.
 
 
-## Cleaning tasks: initial plan
+## Cleaning tasks: plan
 
-[ ] Find missing values
-  [x] Find standard NAs for all
-  * check for non-standard: written text, 0s and numbers outside reasonable range.
-  * blanks: from codes data, expect:
-    * blanks for missing latitude values 
-    * [NO BIRDS RECORDED] in common_name (and _NA_ in sci_name and species_abbreviation) for observations with no sightings
+### 1 explore missing values and strange data
 
-[x] Numeric data:
+[x] Find standard NAs for all
+[x] check for non-standard NAs in character data: From codes data, expect:
+    [x] blanks for missing latitude values 
+    [x] [NO BIRDS RECORDED] in common_name (and _NA_ in sci_name and species_abbreviation) for observations with no sightings
+[x] check numeric data:
   [x] check min and max make sense for latitudes and counts
   [x] check record ids, to ensure we have kept all sightings after the join: expect 1083001 - 85030012 for both birds and ships data
 
-* Common name: 
-  * remove 'sensu lato' =  latin for "in the broad sense"
-  * remove age codes: AD, JUV, IMM, 
-  * remove plummage codes: PL# 
-  * rename ...unidentified as unidentified - or check if better to keep as is and make new col for unidentified, to exclude by
-  * Note some bird1 / bird 2 -- could rename as unidentified since not sure which one
-  * Do distinct() to see if any more need recording
-  * NO BIRDS RECORDED - note as an NA for bird count
+### 2 Plan for cleaning and recoding within data
+
+Cleaning the character data in common_name and sci_name: 
+
+* common_name: remove 'sensu lato' =  latin for "in the broad sense" ? 
+* common_name and sci_name: remove age codes: AD, JUV, IMM ?
+* common_name and sci_name: remove plummage codes: PL# ?
+* Note some bird1 / bird 2 / ... -- explore how many have / and what to do about counting these
+* do distinct() to see if any more need recording
+* ?? create a new column with data recoded by species (e.g. Penguin) to include specifically identified and unidentified birds within the same species, ready for counting by species
   
-* Scientific name:
-  * Have age and plummage codes in this data too (as well as in species abbrev) - does it mean something? Check domain expertise
-  * Some NAs
-  * Several with "/" - unidentified / not sure which. Decide whether to keep.
+To note during analyses:
+
+* For observations where NO BIRDS RECORDED, these can be filtered out by excluding _NA_ in species_abbreviation
+* Note NAs in sci_name are either "NO BIRDS RECORDED" or "<Species> (unidentified)" in common_name
+
+### 3 Plan for assertive programming
+
+Assertive programming to check input data is valid before analysing:
+
+* verify common_name, sci_name, species_abbreviation are character type
+* verify lat, count are numeric type
+* verify lat range: -90 to + 90
+* verify count range: 1 to 99,999 (since this is how data is meant to be encoded)
+* do not do anything to verify record ID, to keep open for any IDs
+  
   
 ## Cleaning tasks: exploration
 
@@ -98,6 +110,7 @@ bird_counts %>%
   summarise(across(.cols = everything(),
                    .fns = ~ sum(is.na(.x))))
 ```
+Note: NAs in several columns we want to use in analysis, tbc how to deal with these during analysis.
 
 ### Check numeric ranges
 ```{r}
@@ -137,9 +150,13 @@ min_id
 max_id
 ```
 #### Latitude
-Latitude ranges -69 to -19, which is within normal range for latitudes in Souther hemisphere (from ship codes data: "S hemisphere: -90 to 0").
+
+Latitude ranges -69 to -19, which is within normal range for latitudes in Southern hemisphere (from ship codes data: "S hemisphere: -90 to 0").
+
+**Outcome: no cleaning required; for assertive programming, verify lat is numeric type and in range -90 to + 90.**
 
 #### Count
+
 Counts range from 1 to 99,999. This upper limit seems unreasonable - inspect the top counts data:
 
 ```{r}
@@ -149,6 +166,8 @@ bird_counts %>%
   head(n = 50)
 ```
 Six records with 99,999 as count (mostly puffins), then several records with 10,000 - 50,000. The bird codes data notes that count is "Total no of individuals counted in 10 min (1 – 50,000; 99999 = over 100,000). Therefore, these high values are real, do not discount as errors / missing values. However, do take this encoding into account when calculating counts (at least <calculated value>).
+
+**Outcome: no cleaning required; for assertive programming, verify count is numeric type and in range: 1 to 99,999 (since this is how data is meant to be encoded).**
 
 #### Record ID
 
@@ -163,6 +182,92 @@ bird_counts %>%
 
 There are 8,869 bird sightings above the expected upper limit for record ID, as per the codes data - this looks real, and I assume more data has been collected since the codes data sheets were written.
 
+**Outcome: no cleaning required; do not include any verification in assertive programming.**
 
+### Inspect for blanks / encoded missing data
 
-  
+#### Any blanks in latitude?
+
+Expect: <blank> for missing values in latitude, according to ship codes data.
+
+```{r}
+# Find blanks in latitude by filtering outside known min and max values
+bird_counts %>% 
+  filter(lat < min_lat | lat > max_lat)
+
+# Find blanks in latitude by looking for ""
+bird_counts %>% 
+  filter(lat == "")
+```
+
+No blanks found, I assume this means no missing latitude values.
+
+#### Any missing data in bird counts (in name columns)?
+
+Expect: [NO BIRDS RECORDED] in common_name (and _NA_ in sci_name and species_abbreviation) for observations with no sightings, according to bird codes data.
+
+```{r}
+# Find "[NO BIRDS RECORDED]"
+bird_counts %>% 
+  arrange(desc(common_name))
+# shows many matches
+
+# count how many
+bird_counts %>% 
+  mutate(missing = str_detect(common_name, "NO BIRDS RECORDED")) %>% 
+  filter(missing == TRUE) # 691 rows
+
+# check if other columns contain NA for all
+bird_counts %>% 
+  mutate(missing = str_detect(common_name, "NO BIRDS RECORDED")) %>% 
+  filter(missing == TRUE) %>%
+  summarise(across(.cols = c(sci_name, species_abbreviation, count),
+            .fns = ~ sum(is.na(.x))))
+```
+
+There are 691 observations whereby no birds were recorded. For these, all have _NA_ in sci_name, species_abbreviation and count. 
+
+Since species_abbreviation has a total of 691 NAs (see table of NAs from earlier), we can use species_abbreviation = _NA_ to filter out "NO BIRDS RECORDED".
+
+**Outcome: to remove "NO BIRDS RECORDED" when analysing, filter by excluding NAs in species_abbreviation**
+
+sci_name has more than 691 _NA_ (from earlier), so there are more missing values to inspect here:
+```{r}
+# find additional NAs in sci_name
+species_na <- bird_counts %>% 
+  filter(!is.na(species_abbreviation)) %>% 
+  filter(is.na(sci_name)) %>%  # 410 more NAs in sci_name
+  group_by(species_abbreviation) %>% 
+  summarise(n())
+
+species_na
+
+# create a vector with the species_abbreviations where sci_name is NA for a sighting
+species_na_lookup <- species_na %>% 
+  select(species_abbreviation) %>% 
+  pull()
+
+species_na_lookup
+```
+11 distinct species (by abbreviation) with NA in sci_name. 
+
+Can I recode sci_name according to this abbreviation, if it exists elsewhere in the data? (And if not, see if I can find it online?). I note some of these look like they could be penguins (PENGUN, DRKPUN), which is important for the requested analyses.
+
+Find all data for these species_abbreviations - is it always NA for sci_name?
+```{r}
+# Find all data for these species_abbreviations
+bird_counts %>% 
+  filter(species_abbreviation %in% species_na_lookup) # 410 observations
+
+# Are they all NA in sci_name?
+bird_counts %>% 
+  filter(species_abbreviation %in% species_na_lookup) %>% 
+  group_by(sci_name) %>% 
+  summarise(n()) # all 410 are NA
+```
+
+All entries with these species abbreviations are also _NA_ in sci_name, so there is no existing additional data here by which I can recode sci_name from species_abbreviation. 
+
+It looks like these are the cases with `(unidentified)` appended to `common_name`, including `Penguin (unidentified)` with `PENGUN` as `species_abbreviation`.
+
+From this, I assume these (unidentified) birds are useful to retain as is, and ensure to include these in counts by species: I may need to look for several names when counting by species (e.g. specific Penguin species as well as these Penguin (unidentified) ones).
