@@ -1,0 +1,91 @@
+---
+title: "Data exploration"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(janitor)
+```
+# Load in raw data
+
+```{r}
+sheet_names <- excel_sheets("data/seabirds.xls")
+```
+
+```{r}
+ship_data <- read_excel("data/seabirds.xls", sheet = "Ship data by record ID")
+bird_data <- read_excel("data/seabirds.xls", sheet = "Bird data by record ID")
+ship_codes <- read_excel("data/seabirds.xls", sheet = "Ship data codes")
+bird_codes <- read_excel("data/seabirds.xls", sheet = "Bird data codes")
+```
+
+Note the error this flagged - it may mean that there is a column that contains mixed type data, or that data has spilled across columns. Tbc when I inspect the subset of data I need for this analysis.
+
+
+# Analysis planning
+
+## Requested insights
+
+* Which bird had the most individual sightings?
+* Which bird had the highest total count?
+* Which bird had the highest total count above a latitude of -30?
+* How many different types of birds were only ever seen in groups of 1?
+* How many penguins were seen? (Hint: there are many types of penguin)
+
+For each question where we ask for bird names, give the bird’s common name, scientific name and species abbreviation.
+
+## Gather required data
+
+1. Join ship_data and bird_data by `RECORD ID` - this is the common key that links the ship data (date of sightings, from which ship, at which lat/long position, who sighted, weather conditions, etc) with the bird data (which bird sighted, how many counted in the sighting, etc). I have decided to left join, to keep all the bird data, and only match ship data where there is a match (I don't need any ship records that don't match up to recorded bird sightings).
+
+2. Retain only the following columns (for the above analysis questions) & rename for tidy data, to create a dataframe like this:
+
+| record_id | ship_lat | common_name | sci_name | species_abbrv | count |
+
+```{r}
+bird_counts <-  left_join(bird_data, ship_data, by = "RECORD ID") # expect all 49,019 bird observations
+
+bird_counts <- bird_counts %>% 
+  select(`RECORD ID`, LAT, `Species common name (taxon [AGE / SEX / PLUMAGE PHASE])`, `Species  scientific name (taxon [AGE /SEX /  PLUMAGE PHASE])`, `Species abbreviation`, COUNT) %>% 
+  clean_names() %>% 
+  rename(
+   common_name = species_common_name_taxon_age_sex_plumage_phase,
+   sci_name = species_scientific_name_taxon_age_sex_plumage_phase
+  )
+
+glimpse(bird_counts)
+
+# write subset of raw data to new csv file to continue with in next cleaning script
+write_csv(bird_counts, "data/bird_counts_raw.csv")
+```
+* Note that text columns are character type, numeric columns are <dbl>. This means any NAs or missing values in numeric columns are standard NAs, blanks or numbers - i.e. no entries written in as 'none' for example.
+
+```{r}
+bird_counts
+```
+
+
+## Cleaning tasks: initial plan
+
+* Numeric data:
+  * check min and max make sense for latitudes and counts
+
+* Common name: 
+  * remove 'sensu lato' =  latin for "in the broad sense"
+  * remove age codes: AD, JUV, IMM, 
+  * remove plummage codes: PL# 
+  * rename ...unidentified as unidentified - or check if better to keep as is and make new col for unidentified, to exclude by
+  * Note some bird1 / bird 2 -- could rename as unidentified since not sure which one
+  * Do distinct() to see if any more need recording
+  * NO BIRDS RECORDED - note as an NA for bird count
+  
+* Scientific name:
+  * Have age and plummage codes in this data too (as well as in species abbrev) - does it mean something? Check domain expertise
+  * Some NAs
+  * Several with "/" - unidentified / not sure which. Decide whether to keep.
+  
+  
+  
+  
