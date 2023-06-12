@@ -3,6 +3,14 @@ title: "Data exploration"
 output: html_notebook
 ---
 
+*This is a playground.* In this notebook, I explore the data, plan cleaning steps, experiment with cleaning and analysis steps, and log decisions and assumptions made throughout.
+
+You do not need to read or run this notebook, the cleaning.R and 2_analysis.Rmd are complete with the final elements.
+
+**TODO**: update .Rmd with decisions and assumptions.
+**TODO**: update README file to explain
+
+
 ```{r}
 library(tidyverse)
 library(readxl)

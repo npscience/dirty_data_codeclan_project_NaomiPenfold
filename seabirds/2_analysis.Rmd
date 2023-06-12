@@ -4,13 +4,18 @@ output: html_notebook
 ---
 
 ```{r}
+library(tidyverse)
+```
+
+
+```{r}
 bird_counts <- read_csv("clean_data/bird_counts_raw.csv") # to check "before cleaning" answers
 bird_counts_clean <- read_csv("clean_data/bird_counts_cleaned.csv")
 
 glimpse(bird_counts_clean)
 ```
 
-## Most individual sightings
+## 1. Most individual sightings
 
 _Task: Which bird had the most individual sightings? Give the bird’s common name, scientific name and species abbreviation._
 
@@ -41,7 +46,7 @@ If group by common_name only, now 151 rows, some with common_names including var
 
 However, **Wandering albatross (Diomedea antipodensis / exulans; DIOANTEXU) has the most individual sightings** by far, so I assume that this answer won't change even if I try to deal with the not-quite-specified birds.
 
-## Highest total count of sightings
+## 2. Highest total count of sightings
 
 _Task: Which bird had the highest total count? Give the bird’s common name, scientific name and species abbreviation._
 
@@ -53,7 +58,13 @@ bird_counts_clean %>%
 ```
 The **Black-billed gull (Larus bulleri; LARBUL)** has the highest total count of sightings (**7732** birds counted).
 
-## Birds sighted alone
+## 3. Highest count about lat -30
+
+_Task: Which bird had the highest total count above a latitude of -30?_
+
+**TODO**
+
+## 4. Birds sighted alone
 
 _Task: How many different types of birds were only ever seen in groups of 1?_
 
@@ -82,14 +93,14 @@ Depending on how you determine "bird type", there are **about 150 different bird
 
 _These differences may be an artefact from dirty data or a cleaning step - perhaps these should all be the same number._
 
-## Penguin sightings
+## 5. Penguin sightings
 
 _Task: How many penguins were seen? (Hint: there are many types of penguin)_
 
 ```{r}
 # find all the types of penguins, regardless of sightings
 penguins <- bird_counts_clean %>% 
-  filter(str_detect(bird_counts_clean$common_name, "(?i)[P]enguin") == TRUE) %>% 
+  filter(str_detect(bird_counts_clean$common_name, "(?i)[P]enguin*") == TRUE) %>% 
   distinct(common_name)
 penguins
 
@@ -110,3 +121,5 @@ penguin_sightings %>%
 ```
 
 There were **158 penguins, of 7 different types** sighted overall.
+
+**IF TIME: look up species names for penguins, and try finding these instead. Potentially more in the dataset.**
