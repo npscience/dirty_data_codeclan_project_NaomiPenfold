@@ -1,0 +1,63 @@
+---
+title: "Analysis of seabird sightings"
+output: html_notebook
+---
+
+```{r}
+bird_counts <- read_csv("clean_data/bird_counts_raw.csv")
+
+glimpse(bird_counts)
+```
+
+## Most individual sightings
+
+_Task: Which bird had the most individual sightings? Give the bird’s common name, scientific name and species abbreviation._
+
+Look for most frequent bird, where count = 1.
+
+```{r}
+bird_counts %>% 
+  filter(count == 1) %>%  # 20,357 individual sightings
+  group_by(species_abbreviation) %>% 
+  summarise(lone_sightings = n()) %>% 
+  arrange(desc(lone_sightings)) # 298 rows
+```
+
+Without recoding / cleaning bird names, there are 298 rows in the summary table when grouping by common_name, some of which are the same bird with different elements in their common name (such as plummage, age). When grouping by species_abbreviation, there are 297 (also contain plummage and age in the column), so this does not improve matters.
+
+So, I do need to clean up these names to get a true total count per bird.
+
+```{r}
+# after cleaning common_name column:
+bird_counts_cleaned %>% 
+  filter(count == 1) %>%  # 20,357 individual sightings
+  group_by(common_name, sci_name, species_abbreviation_clean) %>% 
+  summarise(lone_sightings = n()) %>% 
+  arrange(desc(lone_sightings)) 
+```
+If group by common_name only, now 150 rows, some with common_names including various different possible birds (separated by / ). However, wandering albatross has the most individual sightings by far, so I assume that this answer won't change even if I try to deal with the not-quite-specified birds.
+
+If group by all 3 name columns, 202 rows, which indicates common name : sci name : species abbreviation is not 1:1:1 relationship. In error: Adelie Penguin might have multiple matches.
+
+
+
+Also, the cleaning step worked, so I will write a function for this, to repeat over all 3 name columns
+
+## Highest total count of sightings
+
+_Task: Which bird had the highest total count? Give the bird’s common name, scientific name and species abbreviation._
+
+
+
+## Birds sighted alone
+
+_Task: How many different types of birds were only ever seen in groups of 1?_
+
+
+
+## Penguin sightings
+
+_Task: How many penguins were seen? (Hint: there are many types of penguin)_
+
+
+

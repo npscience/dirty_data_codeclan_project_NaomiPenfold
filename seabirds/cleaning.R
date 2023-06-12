@@ -19,6 +19,6 @@ bird_counts <-  left_join(bird_data, ship_data, by = "RECORD ID") %>%
     sci_name = species_scientific_name_taxon_age_sex_plumage_phase
   )
 
-# View subsetted data
-glimpse(bird_counts)
+# write subsetted data to new file, note: not yet cleaned data within cols.
+write_csv(bird_counts, "clean_data/bird_counts_raw.csv")
 

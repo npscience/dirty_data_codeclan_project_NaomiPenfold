@@ -7,6 +7,7 @@ output: html_notebook
 library(tidyverse)
 library(readxl)
 library(janitor)
+library(assertr)
 ```
 # Load in raw data
 
@@ -75,32 +76,24 @@ glimpse(bird_counts)
   [x] check min and max make sense for latitudes and counts
   [x] check record ids, to ensure we have kept all sightings after the join: expect 1083001 - 85030012 for both birds and ships data
 
-### 2 Plan for cleaning and recoding within data
+### 2 Initial plan for cleaning data
 
-Cleaning the character data in common_name and sci_name: 
+From manual inspection, might need to clean the following:
 
-* common_name: remove 'sensu lato' =  latin for "in the broad sense" ? 
-* common_name and sci_name: remove age codes: AD, JUV, IMM ?
-* common_name and sci_name: remove plummage codes: PL# ?
-* Note some bird1 / bird 2 / ... -- explore how many have / and what to do about counting these
-* do distinct() to see if any more need recording
-* ?? create a new column with data recoded by species (e.g. Penguin) to include specifically identified and unidentified birds within the same species, ready for counting by species
+* Common name: 
+  * remove 'sensu lato' =  latin for "in the broad sense"
+  * remove age codes: AD, JUV, IMM, 
+  * remove plummage codes: PL# 
+  * rename ...unidentified as unidentified - or check if better to keep as is and make new col for unidentified, to exclude by
+  * Note some bird1 / bird 2 -- could rename as unidentified since not sure which one
+  * Do distinct() to see if any more need recording
+  * NO BIRDS RECORDED - note as an NA for bird count
   
-To note during analyses:
+* Scientific name:
+  * Have age and plummage codes in this data too (as well as in species abbrev) - does it mean something? Check domain expertise
+  * Some NAs
+  * Several with "/" - unidentified / not sure which. Decide whether to keep.
 
-* For observations where NO BIRDS RECORDED, these can be filtered out by excluding _NA_ in species_abbreviation
-* Note NAs in sci_name are either "NO BIRDS RECORDED" or "<Species> (unidentified)" in common_name
-
-### 3 Plan for assertive programming
-
-Assertive programming to check input data is valid before analysing:
-
-* verify common_name, sci_name, species_abbreviation are character type
-* verify lat, count are numeric type
-* verify lat range: -90 to + 90
-* verify count range: 1 to 99,999 (since this is how data is meant to be encoded)
-* do not do anything to verify record ID, to keep open for any IDs
-  
   
 ## Cleaning tasks: exploration
 
@@ -271,3 +264,152 @@ All entries with these species abbreviations are also _NA_ in sci_name, so there
 It looks like these are the cases with `(unidentified)` appended to `common_name`, including `Penguin (unidentified)` with `PENGUN` as `species_abbreviation`.
 
 From this, I assume these (unidentified) birds are useful to retain as is, and ensure to include these in counts by species: I may need to look for several names when counting by species (e.g. specific Penguin species as well as these Penguin (unidentified) ones).
+
+## Updated cleaning plan
+
+### Plan: cleaning and recoding within data
+
+Cleaning the character data in common_name and sci_name: 
+
+* common_name: remove 'sensu lato' =  latin for "in the broad sense" ? 
+* common_name and sci_name: remove age codes: AD, JUV, IMM ?
+* common_name and sci_name: remove plummage codes: PL# ?
+* Note some bird1 / bird 2 / ... -- explore how many have / and what to do about counting these
+* do distinct() to see if any more need recording
+* ?? create a new column with data recoded by species (e.g. Penguin) to include specifically identified and unidentified birds within the same species, ready for counting by species
+  
+To note during analyses:
+
+* For observations where NO BIRDS RECORDED, these can be filtered out by excluding _NA_ in species_abbreviation
+* Note NAs in sci_name are either "NO BIRDS RECORDED" or "<Species> (unidentified)" in common_name
+
+### Plan: assertive programming
+
+Assertive programming to check input data is valid before analysing:
+
+* verify common_name, sci_name, species_abbreviation are character type
+* verify lat, count are numeric type
+* verify lat range: -90 to + 90
+* verify count range: 1 to 99,999 (since this is how data is meant to be encoded)
+* do not do anything to verify record ID, to keep open for any IDs
+  
+
+# Analysis before cleaning
+
+What can I analyse without cleaning? Minimise required cleaning steps.
+
+## Most individual sightings
+
+_Task: Which bird had the most individual sightings? Give the bird’s common name, scientific name and species abbreviation._
+
+Look for most frequent bird, where count = 1. Return all 3 names, with count.
+
+### Before cleaning
+
+```{r}
+bird_counts %>% 
+  filter(count == 1) %>%  # 20,357 individual sightings
+  group_by(species_abbreviation) %>% 
+  summarise(lone_sightings = n()) %>% 
+  arrange(desc(lone_sightings)) # 297 rows
+```
+
+Without recoding / cleaning bird names, there are 297 rows in the summary table when grouping by common_name, some of which are the same bird with different elements in their common name (such as plummage, age). When grouping by species_abbreviation, there are 297 (also contain plummage and age in the column), so this does not improve matters.
+
+So, I do need to clean up these names to get a true total count per bird.
+
+### Cleaning: Strip out age and plummage in names
+
+regex patterns to strip out
+* at end $
+* Age: AD or IMM or JUV - include leading space, and * at end
+* Plummage for Wandering albatross: PL[0-9]+ - include leading space
+* Plummage phase: LGHT or DRK or M - but note M is not specific enough to remove it, M can be present in other parts of the name, so ignore for now
+
+```{r}
+bird_counts_clean <- bird_counts # make "clean" version
+
+bird_counts_clean <- bird_counts_clean %>% 
+  mutate(common_name = str_replace_all(bird_counts_clean$common_name, c(
+        "\\ AD*" = "", 
+        "\\ JUV*" = "", 
+        "\\ IMM*" = "",
+        "\\ SUBAD*" = "", 
+        "\\ sensu\\ lato*" = "",
+        "\\ PL[0-9]*" = "",
+        "\\ LGHT*" = "",
+        "\\ DRK*" = ""))) %>% 
+  mutate(sci_name = str_replace_all(bird_counts_clean$sci_name, c(
+        "\\ AD*" = "", 
+        "\\ JUV*" = "", 
+        "\\ IMM*" = "",
+        "\\ SUBAD*" = "", 
+        "\\ sensu\\ lato*" = "",
+        "\\ PL[0-9]*" = "",
+        "\\ LGHT*" = "",
+        "\\ DRK*" = ""))) %>% 
+  mutate(species_abbreviation = str_replace_all(bird_counts_clean$species_abbreviation, c(
+        "\\ AD*" = "", 
+        "\\ JUV*" = "", 
+        "\\ IMM*" = "",
+        "\\ SUBAD*" = "", 
+        "\\ sensu\\ lato*" = "",
+        "\\ PL[0-9]*" = "",
+        "\\ LGHT*" = "",
+        "\\ DRK*" = "")))
+# Note: not yet dealing with M at end, or F without space
+```
+
+This works, but looks like it should be a function. Meh, for now.
+
+Write a function
+
+function(df, column){
+patterns <- c("regex", "regex")
+for pattern in patterns{
+ df %>% 
+ mutate(column_clean = str_replace_all(column, pattern, ""))
+}
+}
+
+This beginning of a for loop now works - finish / clean up later, if time:
+```{r, eval = FALSE}
+patterns <- c("\\ sensu\\ lato*",  "\\ AD*", "\\ PL[0-9]*")
+
+bird_counts_clean_loop <- bird_counts
+
+for (pattern in patterns){
+    bird_counts_clean_loop <- bird_counts_clean_loop %>% 
+      mutate(common_name = str_replace_all(bird_counts_clean_loop$common_name, pattern, ""))
+    }
+```
+
+
+```{r, eval = FALSE}
+clean_bird_names <- function(df, column){
+  pattern <- "\\ AD*"
+  #for (pattern in patterns){
+    df %>% 
+      mutate(col = str_replace_all(df['col'], pattern, ""))
+    #}
+}
+```
+
+```{r, eval = FALSE}
+clean_bird_names(bird_counts, common_name)
+```
+
+### After cleaning
+
+```{r}
+# after cleaning common_name column:
+bird_counts_clean %>% 
+  filter(count == 1) %>%  # 20,357 individual sightings
+  group_by(common_name, sci_name, species_abbreviation) %>% 
+  summarise(lone_sightings = n()) %>% 
+  arrange(desc(lone_sightings)) %>% 
+  head(5)
+```
+If group by common_name only, now 153 rows, some with common_names including various different possible birds (separated by / ). However, **Wandering albatross has the most individual sightings** by far, so I assume that this answer won't change even if I try to deal with the not-quite-specified birds.
+
+Note, if group only by common_name, there are 150 rows, which indicates there are 3 rows for which common name : sci name : species abbreviation is not 1:1:1 relationship (e.g. Adelie Penguin). I can come back to inspect this later, if time. For now, looking at the top values, I don't think it will change my result.
