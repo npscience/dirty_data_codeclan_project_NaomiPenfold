@@ -62,7 +62,16 @@ The **Black-billed gull (Larus bulleri; LARBUL)** has the highest total count of
 
 _Task: Which bird had the highest total count above a latitude of -30?_
 
-**TODO**
+If above latitude -30 means more northerly, then we are looking for -30 to 0 (0 is at the equator; and 0 to 90 for northern hemisphere), i.e. lat > -30.
+
+```{r}
+bird_counts_clean %>% 
+  filter(lat > -30) %>% 
+  group_by(common_name, sci_name, species_abbreviation) %>% 
+  summarise(total_sightings = sum(count)) %>% 
+  arrange(desc(total_sightings))
+```
+The bird with the highest total count above latitude -30 is the **Wedge-tailed shearwater (Puffinus pacificus; PUFPAC)** with **855 total sightings**.
 
 ## 4. Birds sighted alone
 
@@ -97,6 +106,7 @@ _These differences may be an artefact from dirty data or a cleaning step - perha
 
 _Task: How many penguins were seen? (Hint: there are many types of penguin)_
 
+Assuming penguins have "[P/p]enguin" in their common name:
 ```{r}
 # find all the types of penguins, regardless of sightings
 penguins <- bird_counts_clean %>% 
@@ -107,19 +117,48 @@ penguins
 # find all the penguins in the dataset, remove the NAs in count to ensure sums count all sightings
 penguin_sightings <- bird_counts_clean %>% 
   filter(str_detect(bird_counts_clean$common_name, "(?i)[P]enguin") == TRUE) %>% 
-  group_by(common_name) %>% 
+  group_by(common_name, sci_name) %>% 
   summarise(total_sightings = sum(count, na.rm = TRUE)) %>% 
   arrange(desc(total_sightings))
 penguin_sightings
-
-# count the number of types of penguins that were sighted
-nrow(penguin_sightings) # all 7 types were sighted
-
+```
+```{r}
 # sum the sightings of all the penguins to find total sightings
-penguin_sightings %>% 
-  summarise(total_sightings = sum(total_sightings, na.rm = TRUE))
+sum(penguin_sightings$total_sightings, na.rm = TRUE)
 ```
 
 There were **158 penguins, of 7 different types** sighted overall.
 
-**IF TIME: look up species names for penguins, and try finding these instead. Potentially more in the dataset.**
+Alternatively, we can look for Genus names for penguins within the scientific name: 
+* Aptenodytes
+* Pygoscelis
+* Eudyptula
+* Spheniscus
+* Megadyptes
+* Eudyptes
+(From [wikipedia](https://en.wikipedia.org/wiki/Penguin))
+
+Note there is "Penguin (unidentified)" in common name with NA in scientific name, so also include this case:
+``` {r}
+# find all the types of penguins by genus names, regardless of sightings
+penguins_by_genus <- bird_counts_clean %>%
+  filter((str_detect(bird_counts_clean$sci_name, "Aptenodytes*|Pygoscelis*|Eudyptula*|Spheniscus*|Megadyptes*|Eudyptes*") == TRUE) | (str_detect(bird_counts_clean$common_name, "Penguin (unidentified)*") == TRUE)) %>% 
+  distinct(sci_name)
+penguins_by_genus
+# finds 6 different species, plus NA for "Penguin (unidentified)"
+
+# sum count of all sightings (remove NA)
+penguin_sightings_by_genus <- bird_counts_clean %>% 
+  filter((str_detect(bird_counts_clean$sci_name, "Aptenodytes*|Pygoscelis*|Eudyptula*|Spheniscus*|Megadyptes*|Eudyptes*") == TRUE) | (str_detect(bird_counts_clean$common_name, "Penguin (unidentified)*") == TRUE)) %>% 
+  group_by(common_name, sci_name, species_abbreviation) %>% 
+  summarise(total_sightings = sum(count, na.rm = TRUE)) %>% 
+  arrange(desc(total_sightings))
+penguin_sightings_by_genus
+```
+
+```{r}
+# sum the sightings of all the penguins to find total sightings
+sum(penguin_sightings_by_genus$total_sightings, na.rm = TRUE)
+```
+
+This approach also finds **158 penguins**.
