@@ -482,5 +482,6 @@ x2015_tidy %>%
 
 * find missing values, NAs
 * clean up country column - need USA, Canada, UK, all other countries
+  * note in 2016 there is age data in the country column!
 * clean up any other data, e.g. character
 
