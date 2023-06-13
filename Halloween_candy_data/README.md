@@ -18,7 +18,9 @@ _initiate_
 ### Cleaning
 
 2015:
-* Renamed and reformatted variables about year and rater info, adding empty columns for age, gender (not present here)
+* Renamed and reformatted variables about year and rater info, adding empty columns for gender and country (not present here)
+* Recoded age data to retain 11 values when recoding as numeric data, the rest are not meaningful and ok to be coerced to NA
 * Removed unwanted columns (not about candy items)
 * Pivotted to longer format (candy_item, rating)
-* NOT YET DONE: not yet dealt with additional ratings contained in columns x2015$98,99 --> to do next and add in to cleaning script
+* Not yet dealt with additional ratings contained in columns x2015$98,99 --> 1000s additional ratings here, to include if time later
+
