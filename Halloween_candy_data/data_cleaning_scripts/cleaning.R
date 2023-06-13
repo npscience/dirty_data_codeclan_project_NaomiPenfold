@@ -51,7 +51,9 @@ x2015_subset_converted <- x2015_subset %>%
   # make empty columns for gender and country (missing in this year's dataset)
   mutate(gender = rep(NA_character_, nrow(x2015_subset)), .after = age) %>% 
   mutate(country = rep(NA_character_, nrow(x2015_subset)), .after = gender) %>% 
-  filter(!id == 1573) # remove 1 duplicate
+  filter(!id == 1573) %>%  # remove 1 duplicate
+  # reformat id as YYYYxxxx to make unique when years combined
+  mutate(id = (year*10000)+id, .before = year)
 # expect dim: 5629 observations x 85 variables
 # cols 1:6 are rater_info, 7-85 are candy items
 
@@ -99,7 +101,8 @@ x2016_subset_converted <- x2016_subset %>%
   ) %>%
   # change format of age and year data
   mutate(age = as.integer(age), # Note: this introduces NAs by coercion
-         year = as.numeric(format(year, "%Y")))
+         year = as.numeric(format(year, "%Y"))) %>% 
+  mutate(id = (year*10000)+id, .before = year)
 # outputs df: 1259 obs. x 90 var (1 more col than subset: id)
 
 ## step 3: make long format tidy data

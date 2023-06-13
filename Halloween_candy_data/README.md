@@ -23,4 +23,5 @@ _initiate_
 * Removed unwanted columns (not about candy items)
 * Pivotted to longer format (candy_item, rating)
 * Not yet dealt with additional ratings contained in columns x2015$98,99 --> 1000s additional ratings here, to include if time later
+* Not yet looked for duplicates
 
