@@ -8,6 +8,7 @@ library(tidyverse)
 library(readxl)
 ```
 
+# Load and inspect data
 
 ```{r}
 excel_sheets("data/boing-boing-candy-2015.xlsx")
@@ -15,9 +16,133 @@ excel_sheets("data/boing-boing-candy-2016.xlsx")
 excel_sheets("data/boing-boing-candy-2017.xlsx")
 ```
 
+Each excel has only one sheet, each excel file is a dataset for one year. 
+
+Read these in:
 ```{r}
 x2015 <- read_excel("data/boing-boing-candy-2015.xlsx", sheet = "Form Responses 1")
 x2016 <- read_excel("data/boing-boing-candy-2016.xlsx", sheet = "Form Responses 1")
 x2017 <- read_excel("data/boing-boing-candy-2017.xlsx", sheet = "responses (2) (1).csv")
 ```
+
+
+# Analysis questions
+
+Note: more info on the data source [here](https://www.scq.ubc.ca/so-much-candy-data-seriously/).
+
+1. What is the total number of candy ratings given across the three years. (Number of candy ratings, not the number of raters. Don’t count missing values)
+2. What was the average age of people who are going out trick or treating?
+3. What was the average age of people who are not going trick or treating?
+4. For each of joy, despair and meh, which candy bar received the most of these ratings?
+5. How many people rated Starburst as despair?
+
+For the next three questions, count despair as -1, joy as +1, and meh as 0.
+6. What was the most popular candy bar by this rating system for each gender in the dataset ?
+7. What was the most popular candy bar in each year?
+8. What was the most popular candy bar by this rating for people in US, Canada, UK, and all other countries?
+
+Which variables do we need to answer the analysis questions? We need:
+* All candy ratings (1 rating of 1 candy bar by 1 rater in 1 year = 1 observation)
+* Age of rater, where available
+* Whether or not the rater goes out trick or treating
+* To be able to summarise count of ratings (joy, meh, despair) for each candy bar
+* Gender of rater, where available
+* To be able to filter for Starburst and count despair ratings
+* To be able to convert ratings to +1, 0, -1 and sum across these 3 (new column)
+* To be able to group by year
+* To be able to group by country
+
+# Approach for joining data (and making it 'tidy' long format)
+
+Step 1: Make tidy data: 
+  * We want variables: rater_info (ToT_activity, age, gender, country), rating_year, type of candy bar <chr>, rating (joy, meh, despair) 
+  * Make sure variables are in same (and desired) data type in all 3 dfs
+  * add a column for year in each dataset
+  * add column with NAs for any of the above variables where data does not exist in that year's df 
+
+Step 2: Join the tidy dataframes (append rows)
+* Try tidying each sheet first, then joining all 3 together. Then deal with inconsistent candy bar names in later cleaning step, i.e.:
+  * Make matching variables and rated objects (candy bars) consistent across the 3 dataframes
+  
+Aim: I want to make one combined df. that looks like the following, whereby 1 rating of 1 candy item by 1 rater in 1 year = 1 observation:
+
+| Year <dttm( or int(YYYY)> | Goes_ToT <chr or lgl>  | Age <int> | Gender <chr> | Country <chr>  | Candy_item <chr> | Rating <chr>  | [And later: Rating_value <dbl>] |
+|----|----|----|----|----|----|----|----|
+| 2015 | TRUE | 23 | Male | USA | Twix | JOY | 1 |
+| 2016 | FALSE | 36 | Female | Canada  | Twix | DESPAIR | -1 |
+| 2016 | FALSE | 36 | Female | Canada  | Trail mix | MEH | 0 |
+
+## Variables, rows and data types
+
+Here, I have inspected the variables within each year's dataset, and decided what to remove, what to keep and how to keep it, to achieve the above aim of combined tidy data.
+
+### 2015
+
+```{r}
+ncol(x2015) # 124 columns
+colnames(x2015)
+```
+
+```{r}
+glimpse(x2015) # 5630 rows
+# data types: mostly <chr>, some <lgl> at end, 1 <dttm> at beginning
+```
+
+Variables to keep/convert:
+
+| Column # | Current variable name <type> | Action required to make tidy data |
+| ----- | ----- | ----- |
+| 1 | `Timestamp` <dttm> | Convert to `Year` <dttm (YYYY)> |
+| 2 | `How old are you?` <chr> | Convert to `Age` <int> |
+| 3 | `Are you going actually going trick or treating yourself?` <chr> |  Convert to `Goes_ToT` <chr or lgl> |
+| 4-96,114,115 | `Candy or other substance` <chr> | Remove non-candy items (see below) then make tidy -> `Candy_item` <chr> + `Rating` <chr> |
+| 97,100-113,116-124 | Miscellaneous  | Remove |
+| 98 | `Please list any items not included above that give you JOY.` | Extract answers --> new cols with JOY as value, and include in tidying step |
+| 99 | `Please list any items not included above that give you DESPAIR.` | Extract answers --> new cols with DESPAIR as value, and include in tidying step |
+
+Decisions on variables to keep/remove:
+
+* Some are not candy (either obviously or by searching online), so removed:
+  * Other food items, not candy: `Healthy fruit`, `Kale smoothie`, `Minibags of chips`, `Spotted Dick`, `Peanut butter jars`, `White bread`, `Whole wheat anything`
+  * Pharmaceuticals: `[Generic Brand Acetaminophen]`, `[Vicodin]`
+  * other items, not food: `Cash...`, `Dental paraphenalia`, `Glow sticks`, `Broken glow stick`, `Creepy Religious comics...`, `Hugs...`, `Lapel pins`
+* Items kept in include candy that I recognise by name or have identified as candy by searching online, for example:
+  * `Pencils`, `Peterson Brand sidewalk chalk`, `Trail mix` - note decided to keep this in as it is a high sugar content snack.
+
+
+
+
+### 2016
+
+```{r}
+ncol(x2016) # 123 columns
+colnames(x2016)
+```
+
+```{r}
+glimpse(x2016) # 1259 rows
+# data types: mostly <chr>, 1 <lgl> at end, 1 <dttm> at beginning
+```
+
+### 2017
+
+```{r}
+ncol(x2017) # 120 columns
+colnames(x2017)
+```
+
+```{r}
+glimpse(x2017) # 2460 rows
+# data types: mostly <chr>, some <dbl>, no <lgl>
+```
+
+
+
+
+
+# Inspect data within
+
+* find missing values, NAs
+* clean up country column - need USA, Canada, UK, all other countries
+* clean up any other data, e.g. character
 
