@@ -1760,26 +1760,18 @@ display: none;
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeSh0aWR5dmVyc2UpXG5gYGAifQ== -->
-<pre class="r"><code>library(tidyverse)</code></pre>
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShqYW5pdG9yKVxuXG5gYGAifQ== -->
+<pre class="r"><code>library(janitor)
+</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiUmVnaXN0ZXJlZCBTMyBtZXRob2RzIG92ZXJ3cml0dGVuIGJ5ICdkYnBseXInOlxuICBtZXRob2QgICAgICAgICBmcm9tXG4gIHByaW50LnRibF9sYXp5ICAgICBcbiAgcHJpbnQudGJsX3NxbCAgICAgIFxu4pSA4pSAIEF0dGFjaGluZyBwYWNrYWdlcyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAgdGlkeXZlcnNlIDEuMy4xIOKUgOKUgFxu4pyUIGdncGxvdDIgMy4zLjYgICAgIOKclCBwdXJyciAgIDAuMy40XG7inJQgdGliYmxlICAzLjIuMSAgICAg4pyUIGRwbHlyICAgMS4xLjJcbuKclCB0aWR5ciAgIDEuMi4wICAgICDinJQgc3RyaW5nciAxLjQuMFxu4pyUIHJlYWRyICAgMi4xLjIgICAgIOKclCBmb3JjYXRzIDAuNS4xXG7ilIDilIAgQ29uZmxpY3RzIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgCB0aWR5dmVyc2VfY29uZmxpY3RzKCkg4pSA4pSAXG7inJYgZHBseXI6OmZpbHRlcigpIG1hc2tzIHN0YXRzOjpmaWx0ZXIoKVxu4pyWIGRwbHlyOjpsYWcoKSAgICBtYXNrcyBzdGF0czo6bGFnKClcbiJ9 -->
-<pre><code>Registered S3 methods overwritten by &#39;dbplyr&#39;:
-  method         from
-  print.tbl_lazy     
-  print.tbl_sql      
-── Attaching packages ────────────────────────────────────────────────────────────── tidyverse 1.3.1 ──
-✔ ggplot2 3.3.6     ✔ purrr   0.3.4
-✔ tibble  3.2.1     ✔ dplyr   1.1.2
-✔ tidyr   1.2.0     ✔ stringr 1.4.0
-✔ readr   2.1.2     ✔ forcats 0.5.1
-── Conflicts ───────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
-✖ dplyr::filter() masks stats::filter()
-✖ dplyr::lag()    masks stats::lag()</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiXG5BdHRhY2hpbmcgcGFja2FnZTog4oCYamFuaXRvcuKAmVxuXG5UaGUgZm9sbG93aW5nIG9iamVjdHMgYXJlIG1hc2tlZCBmcm9tIOKAmHBhY2thZ2U6c3RhdHPigJk6XG5cbiAgICBjaGlzcS50ZXN0LCBmaXNoZXIudGVzdFxuIn0= -->
+<pre><code>
+Attaching package: ‘janitor’
+
+The following objects are masked from ‘package:stats’:
+
+    chisq.test, fisher.test</code></pre>
 <!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShyZWFkeGwpXG5gYGAifQ== -->
-<pre class="r"><code>library(readxl)</code></pre>
-<!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <div id="load-and-inspect-data" class="section level1">
@@ -1867,56 +1859,61 @@ and rated objects (candy bars) consistent across the 3 dataframes</p>
 <p>Aim: I want to make one combined df. that looks like the following,
 whereby 1 rating of 1 candy item by 1 rater in 1 year = 1
 observation:</p>
-<table>
+<table style="width:100%;">
 <colgroup>
-<col width="12%" />
-<col width="12%" />
-<col width="12%" />
-<col width="12%" />
-<col width="12%" />
-<col width="12%" />
-<col width="12%" />
-<col width="12%" />
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
 </colgroup>
 <thead>
 <tr class="header">
-<th>Year &lt;dttm( or int(YYYY)&gt;</th>
-<th>Goes_ToT <chr or lgl></th>
-<th>Age <int></th>
-<th>Gender <chr></th>
-<th>Country <chr></th>
-<th>Candy_item <chr></th>
-<th>Rating <chr></th>
-<th>[And later: Rating_value <dbl>]</th>
+<th>year &lt;dttm( or int(YYYY)&gt;</th>
+<th>id <int></th>
+<th>age <int></th>
+<th>gender <chr></th>
+<th>country <chr></th>
+<th>goes_trick_or_treating <chr or lgl></th>
+<th>candy_item <chr></th>
+<th>rating <chr></th>
+<th>[And later: rating_value <dbl>]</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>2015</td>
-<td>TRUE</td>
+<td>5058</td>
 <td>23</td>
 <td>Male</td>
 <td>USA</td>
+<td>TRUE</td>
 <td>Twix</td>
 <td>JOY</td>
 <td>1</td>
 </tr>
 <tr class="even">
 <td>2016</td>
-<td>FALSE</td>
+<td>1123</td>
 <td>36</td>
 <td>Female</td>
 <td>Canada</td>
+<td>FALSE</td>
 <td>Twix</td>
 <td>DESPAIR</td>
 <td>-1</td>
 </tr>
 <tr class="odd">
 <td>2016</td>
-<td>FALSE</td>
+<td>1123</td>
 <td>36</td>
 <td>Female</td>
 <td>Canada</td>
+<td>FALSE</td>
 <td>Trail mix</td>
 <td>MEH</td>
 <td>0</td>
@@ -2223,21 +2220,21 @@ $ `Please estimate the degrees of separation you have from the following folks [
 <tr class="odd">
 <td>1</td>
 <td><code>Timestamp</code> <dttm></td>
-<td>Convert to <code>Year</code> &lt;dttm (YYYY)&gt;</td>
+<td>Convert to <code>year</code> &lt;dttm (YYYY)&gt;</td>
 </tr>
 <tr class="even">
 <td>2</td>
 <td><code>How old are you?</code> <chr></td>
-<td>Convert to <code>Age</code> <int></td>
+<td>Convert to <code>age</code> <int></td>
 </tr>
 <tr class="odd">
 <td>3</td>
 <td><code>Are you going actually going trick or treating yourself?</code>
 <chr></td>
-<td>Convert to <code>Goes_ToT</code> <chr or lgl></td>
+<td>Convert to <code>goes_trick_or_treating</code> <chr or lgl></td>
 </tr>
 <tr class="even">
-<td>4-96,114,115</td>
+<td>4-17,19-22,24-25,29-32,35-37,39-40,42-44,46-55,57-81,83-89,91-92,96,114,115</td>
 <td><code>Candy or other substance</code> <chr></td>
 <td>Remove non-candy items (see below) then make tidy -&gt;
 <code>Candy_item</code> <chr> + <code>Rating</code> <chr></td>
@@ -2266,25 +2263,52 @@ tidying step</td>
 <li>Some are not candy (either obviously or by searching online), so
 removed:
 <ul>
-<li>Other food items, not candy: <code>Healthy fruit</code>,
-<code>Kale smoothie</code>, <code>Minibags of chips</code>,
-<code>Spotted Dick</code>, <code>Peanut butter jars</code>,
-<code>White bread</code>, <code>Whole wheat anything</code></li>
-<li>Pharmaceuticals: <code>[Generic Brand Acetaminophen]</code>,
-<code>[Vicodin]</code></li>
-<li>other items, not food: <code>Cash...</code>,
-<code>Dental paraphenalia</code>, <code>Glow sticks</code>,
-<code>Broken glow stick</code>, <code>Creepy Religious comics...</code>,
-<code>Hugs...</code>, <code>Lapel pins</code></li>
+<li>Other food items, not candy: [34] <code>Healthy fruit</code>, [41]
+<code>Kale smoothie</code>, [56] <code>Minibags of chips</code> (crisps,
+not candy), [82] <code>Spotted Dick</code> (cake, not candy), [90]
+<code>Peanut butter jars</code> (nut butter, not candy), [94]
+<code>White bread</code>, [95] <code>Whole wheat anything</code></li>
+<li>Pharmaceuticals: [26] <code>[Generic Brand Acetaminophen]</code>,
+[93] <code>[Vicodin]</code></li>
+<li>other items, not food: [18] <code>Cash...</code>, [23]
+<code>Dental paraphenalia</code>, [27] <code>Glow sticks</code>, [28]
+<code>Broken glow stick</code>, [33]
+<code>Creepy Religious comics...</code>, [38] <code>Hugs...</code>, [45]
+<code>Lapel pins</code></li>
 </ul></li>
 <li>Items kept in include candy that I recognise by name or have
 identified as candy by searching online, for example:
 <ul>
-<li><code>Pencils</code>, <code>Peterson Brand sidewalk chalk</code>,
-<code>Trail mix</code> - note decided to keep this in as it is a high
-sugar content snack.</li>
+<li>[63] <code>Pencils</code>, [88]
+<code>Peterson Brand sidewalk chalk</code>, [91] <code>Trail mix</code>
+- note decided to keep this in as it is a high sugar content snack.</li>
 </ul></li>
 </ul>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MjAsIm5jb2wiOjgsInN1bW1hcnkiOnsiQSB0aWJibGUiOlsiMjAgw5cgOCJdfX0sInJkZiI6Ikg0c0lBQUFBQUFBQUE5VlZXMDhVTVJRdUN5dnNLbUFpTWNhbmsvaWkwZDJBeHNRbkk3dkxSUjZVZ0JyTXhKRE9UR2UyMG0wbnZRQkRmT0J2K09SLzg5bmZnSjZaM2U0dFlIemdRU2JwdFAxNnp0ZnpuZDcyT2djdjZnZDFRc2dzbWF2Z3Y0cE5VdjM0WWJQeGlwUUltU0Z6cEZiVXB6aDhEeHNMV0phd3JMejU4YTJ3SnY5cmpkOWlFV2NwNG5xTDUzMTB6ZVh1Z0xmMkc3Ly91TDVaY2ZZM2NPV2R1dUd0U1QxTFFjdFp5M1RDWmNyMGx3RzZIS3l0cnNLV3BqS0dGaDNDcjROMXFXVGVVODVBcU5XSmhGU28wSUR0VWd1UjZqSGdFa0pCb3lNb1BCWDZwd3hPTk0weXBvMW5lWWdzT1NST2lJYmhaeXlHQ0kxekNFZnpMQWF0a21RSGYwTzNXdEJTOG1pTUI2MlV0WUpCbTJZSWt2TUNYRUh3OU9mNWQ0VUY5aWczWEE0ZG5nWXRUYU11WkZyRkxySUdIa3RsTWVSSXVCamxEK0tJbEpaUHZNc2RURThZNGh4YnJ1ZXhsYUJONDlEcEhOcWFvZWFOTkRVaiszWkowa1lTajIwSG56Z1ZCbFFDbWRNTXVqenRRcUl4QW1WWU9SMllYTHZzR1NSS1E0OXkyUkJjRmdGeGFSWGt5bWs0Wm55TXJ6OUhtWFZ1SUJLTWFwSERWMmNzZ2d5TWRVa0NLVDltRXBTekpXMmlHUU8wMTh4WTZuQmg3RERtZXREdWNpU3hFeW8wN1RFaDFKalZ2dVRSZVA0ZkJCMnFqNkRkVlpFUzFETFl4c0V1eS8zNHJhQ2pScHpMd2FZN084dGhsK0VTc0dLOUp2Ymg3TTc3ejhNajE0Zm1PeHY3dSt0djl5Nnp1S3ErMVBPcTdyODVYVDVGR2MzZm1pUC9pUWV3S2pHdlppQitZUURPNWJpQy9vankySlBSbFBsVXBrekd6SnZNUjhwSnEvTkI5MzZxbURtMEdsZm5VR2xzTUdweDkvaDFLM2YxSWJlczU4bDBmM3d5c0JxZTU2WVBybmlaS3VmNFE4Ry9waFZFZ2hxdndJUDFtRnJhVElwTmc3MkxLWmQ1bFZtdUpEcFZpcmUvT3VVOG82ZUEyODlYMTE0MmpBc05zd1U1NmIrWFpCRFpET20vRzc2OTBKK3U0dS9xcWhmS1pNcWx6MkZWMEpBSmYrMFZ0MWNodHBscFBHVmVCYUttYVpXbFlwZzlKVHhTNmlJWGZ3RGs1cHNvN2dnQUFBPT0ifQ== -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["year"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["id"],"name":[2],"type":["int"],"align":["right"]},{"label":["age"],"name":[3],"type":["int"],"align":["right"]},{"label":["gender"],"name":[4],"type":["chr"],"align":["left"]},{"label":["country"],"name":[5],"type":["chr"],"align":["left"]},{"label":["goes_trick_or_treating"],"name":[6],"type":["chr"],"align":["left"]},{"label":["candy_item"],"name":[7],"type":["chr"],"align":["left"]},{"label":["rating"],"name":[8],"type":["chr"],"align":["left"]}],"data":[{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Butterfinger]","8":"JOY"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[100 Grand Bar]","8":"NA"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Anonymous brown globs that come in black and orange wrappers]","8":"DESPAIR"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Any full-sized candy bar]","8":"JOY"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Black Jacks]","8":"NA"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Bonkers]","8":"NA"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Bottle Caps]","8":"NA"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Box’o’ Raisins]","8":"NA"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Brach products (not including candy corn)]","8":"DESPAIR"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Bubble Gum]","8":"DESPAIR"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Cadbury Creme Eggs]","8":"DESPAIR"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Candy Corn]","8":"NA"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Vials of pure high fructose corn syrup, for main-lining into your vein]","8":"DESPAIR"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Candy that is clearly just the stuff given out for free at restaurants]","8":"DESPAIR"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Chiclets]","8":"NA"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Caramellos]","8":"NA"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Snickers]","8":"JOY"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Dark Chocolate Hershey]","8":"JOY"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Dots]","8":"JOY"},{"1":"2015","2":"1","3":"35","4":"NA","5":"NA","6":"No","7":"[Fuzzy Peaches]","8":"DESPAIR"}],"options":{"columns":{"min":{},"max":[10],"total":[8]},"rows":{"min":[10],"max":[10],"total":[20]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuaGVhZCh4MjAxNV90aWR5LCBuID0gMjApXG5cbnRhaWwoeDIwMTVfdGlkeSwgbiA9IDIwKVxuYGBgIn0= -->
+<pre class="r"><code>head(x2015_tidy, n = 20)
+
+tail(x2015_tidy, n = 20)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6MjAsIm5jb2wiOjgsInN1bW1hcnkiOnsiQSB0aWJibGUiOlsiMjAgw5cgOCJdfX0sInJkZiI6Ikg0c0lBQUFBQUFBQUE5VlZTMnNiTVJCV25MaEpIQkpLbXhSeXFzaWhOR0M3THdvOU5vOEdXbkJxdkM1TldFcVFkOGRlc1ZySlNOcHVERDNrYi9UVS85WnpmMFBhMmZYS3IxTW9PU1FMMG95K2VXaG1ORnAxanMvZTFNNXFoSkJsc2xMQnVZb3NxWDdwbmpUZWtRSWhTMlNGck9mMEVzV1BrVm5Ec1lWaisvMnZIN2sydWFzVXY4MDhUa0oycm05M09MK2tmc3ZqWWVsMy9TOStkNWplcnpqSERWdzVWZmVjbTg5bnkrL0FJQlZNMDlhemx2bFdvaHQraTBzN0I2RWk3L1dVcEFHVDRjaWhxMzVIQ1RWUnF2bGV6SzBWTUVGMmZDOWgybkl3OVBsQkFwcWorYjRUN3M0SWoxU1NLSmtCRXpaQ0JYS1ZLN3p3anlJZXhBM1Y4Q3hTVk11QWhrcit2dnBwYVN4VlJyT0lXV3J6aVp2OWFmaWVaYnFYYW1PbjRYc1poTnhFOUFTbm1YZ3pBSnNtazNqcmZqZFNCcWdLUTRxeG1TaGhRdUErQWRkQmF1Z1FtRXp6RGJrY1RHd2VvWTBHb0szVXhHQUI5RVR5MUc4am9BMlc3VkJqM2FqSFE4aVlpT2xSaExOVDIwYTF3dTloYWxHZEhqSTljeFJkemJpZ0xYN3BvQWQrTjV1dWR2MXpwV1BhaHVFUWRKSWZXNXZadktaTzRjejNnRFVNRnBiMkJmdXVOSVRVMkxUZnI5T2hWajNXRXlNYVJDcFFnbG1vVThObEFIbUdCa3VLRk9nZXQzdWxLVlg5QWhvQjA5UFNua0lRS1BxVjlZdlU1eHRzK2RQbmM5Y3N4eCs4OXNISHpvMldNM1kzZHZIZk51NnUzOW9tWTY5elQxOVZzZ1JNV1oyMUVsekpDK2t1SncrZE5SdUFPK3NCeUJDY3ltcWdVbW4xcUZ3K0dTZ3dGeFl2Vlh5aE5ETEFMRGFtYSs3aXBsNXdDNGx6cHNmeStjRFd0Y3FhTHJqOFRhcGM0WVRsK0xPWVFTQ1ljUms0c0JZeXk1cDlqZmE0dWw0d1dWVkR5NVZFbzByKzZsY1hqSmYwQXJEeCt1V3J0dzJUOWd6WTNIa2hHbitiSmI4OXc2K050NnU0djNUVkpRcHl3S1dyWVZXd0hnalhyWmh0a1d4enFQR3l1Q3dRTlUyckxCT1Q2aW5oa0NJdmN2MFA1VHFVRCtnSUFBQT0ifQ== -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["year"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["id"],"name":[2],"type":["int"],"align":["right"]},{"label":["age"],"name":[3],"type":["int"],"align":["right"]},{"label":["gender"],"name":[4],"type":["chr"],"align":["left"]},{"label":["country"],"name":[5],"type":["chr"],"align":["left"]},{"label":["goes_trick_or_treating"],"name":[6],"type":["chr"],"align":["left"]},{"label":["candy_item"],"name":[7],"type":["chr"],"align":["left"]},{"label":["rating"],"name":[8],"type":["chr"],"align":["left"]}],"data":[{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Regular M&Ms]","8":"JOY"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Mint M&Ms]","8":"DESPAIR"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Ribbon candy]","8":"DESPAIR"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Rolos]","8":"DESPAIR"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Skittles]","8":"JOY"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Smarties (American)]","8":"JOY"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Smarties (Commonwealth)]","8":"DESPAIR"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Chick-o-Sticks (we don’t know what that is)]","8":"DESPAIR"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Starburst]","8":"JOY"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Swedish Fish]","8":"JOY"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Sweetums]","8":"DESPAIR"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Those odd marshmallow circus peanut things]","8":"DESPAIR"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Three Musketeers]","8":"JOY"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Peterson Brand Sidewalk Chalk]","8":"NA"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Peanut Butter Bars]","8":"DESPAIR"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Trail Mix]","8":"DESPAIR"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Twix]","8":"JOY"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[York Peppermint Patties]","8":"JOY"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Sea-salt flavored stuff, probably chocolate, since this is the \"it\" flavor of the year]","8":"DESPAIR"},{"1":"2015","2":"5630","3":"44","4":"NA","5":"NA","6":"No","7":"[Necco Wafers]","8":"JOY"}],"options":{"columns":{"min":{},"max":[10],"total":[8]},"rows":{"min":[10],"max":[10],"total":[20]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>NEXT: deal with column 98-99 in x2015 –&gt; item &amp; rating, with
+rater id.</p>
 </div>
 <div id="section-1" class="section level3">
 <h3>2016</h3>
@@ -2833,6 +2857,20 @@ $ `Click Coordinates (x, y)`                                                    
 <!-- rnb-text-begin -->
 </div>
 </div>
+<div id="check-consistency-of-candy-items-in-each-year" class="section level2">
+<h2>Check consistency of candy items in each year</h2>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-frame-begin eyJtZXRhZGF0YSI6eyJjbGFzc2VzIjpbInRibF9kZiIsInRibCIsImRhdGEuZnJhbWUiXSwibnJvdyI6NzksIm5jb2wiOjEsInN1bW1hcnkiOnsiQSB0aWJibGUiOlsiNzkgw5cgMSJdfX0sInJkZiI6Ikg0c0lBQUFBQUFBQUEyVlcyMjdiUmhDbDNUaUI3U1lPMnZTU0lrZ0hlV2hzMUhJVDlLVlBCU0s1aVd0THFXR3JiWXBGVVN6Sm9ialZjcGZZaTJYbUtiL1J6K2d2OVVQaXpsS2lTQ21BU1l0bloyZm5jbVptTDQ3ZmZML3paaWVLb28raVc1djAzcUtmMGRhdjQ1ZTlINklhaVRhaVc5RjIrSDlOeTUvV1FCVGRwK2VYeGNJOTF2Zk9vY21FbXFENWM0SHVzZWZQbnNFcncxVUtmYjZFZjJRdmxGWlZvYjJGMk9pWmdvblVzUVdYY3dlSkxoQ0VnbGp5WkFwaHA2YjlFNFNaNFdXSnhqWmF2aUl0RldSZXlwNFZiekdGaElRcmlOdHo3ckorcmVTVVhzdHQyNnl2MWJTamg2UzBjeEpod0VzQ28zY0JmRURnOVgvdi90SDB3QVVYVnFqbGhtOVozL0FraDlMbzFDZk93cjdTamt4T3BFL0ovWVVkaVRicW9ObnlNWVVuanVtTVY3NW9zQWRzd05QWW13b0dCc25ubnlZVDI4b1BhaVVEVXRKZ0ordzN3YVVGblVIcERVSXVKamxraGl6UUZ1dmp3RmJHbDRlUWFRTUZGNm9uaFFvR0NlVTBWTm9idUVMUjBUYy9vNDY2c0pCSTVFWlc4TGUzamtBRTYzeVd3VVJjb1FMdFhhMDJNNGhBOGdhdDQ1NFM0NVkyNzdCQkxraUpXL0hDOEFLbDFCMnBTeVdTYnZ5L1pNZmNUR0dRNjBSTDdoQk9hREhIcWxtL3pZNTFxM09QdmZSdjMxWndqcFFDWE1LZnNGZGFRM2dHa3V6dnFMOGZWbEo0L1JUT0pTcTNWUHVRVVM3SUgxMFFaU3pHWEVyS25FbnRpa0JSUVovQ1lpa1lobFBBSGZpeUVkaGxKOGhkUG1mMm5EWmZzSVh4UkJzTFo4SmFUbGxmc3VyUnl2Skl5STdiamRaSDdGUkxTc01GVitTZ2dmMllwNUJKZnFYTmtrNlBWMldJZ1pQZzQ1clVBM1ltVkVvcVRxaHdLamdSWmFuYktqZ1REczY0YTNOMVFzNURUWWtXRzJLaEZYbVpkdkkzRk1RMWtTd04vbnlKekF1aEx0eURObDlETXNMQjJCQ1pKTGF4RzVJSG90U2xiZk04NHFiREhmcXFxSFFWZHM0ZThVcDFjN1RMNmlBZSs3U3pjY2l6ckJxSFY0TjlSdkdxNkEvMlIrVDF6NXJLRkR0aHVzREpST0M4VFdqVjdWUzc3RnhjVjNEcHhIVUQzV0d2c1dQQkhuM2F1bnNZVDhsbzRIdnN0WjQ5VlUrSHZNdkZiWGFPS2hGeXpmNEtmdWRWdzVISFpBNWFyQmxDSkZkVWVQUFdDZ1BmQnVzeEcyc1pvOUdLNnBRNnBzdERvVk9CYXFwYzA5cDY0VHNWZW8rZGVpVklhQ1JXMEV2OEVMM0x3bWROWVZ3SFQ3M0VjaDBjSXI5cW1YNmZMV3dmZlRNS3JyU0hVYkM5NUNZc3JJUkJ1UldJQkVVY1V6YVNMaVBKSWIzYVRLWWk5RzdiWnZxeTRNWUpwSnA0VVNDeGtyZGQrR0ZuY2FBTG92WU11WFQ1UVdQMWQzVUxtL1owanpKT1pJRDlHVUtxRlhuZ1lLcjBER2FoV1M0NjVrRnIvcVhqaGxxNWRaMmd6akFWTm9lWDlPcllPME4wdmxqYWU4akdlV2pmT2sycFpWTnZLS2dQMFRtSk1BbE54M0lleERxN25WNDN6a01iSG5rN1JZY2RmbjFOVVE5OEN5U3VoKzZsU0hIRzZ6WkQ3NWJ4cThUcWQrcHVsNDJwMFVraXc1THh0OWw0MW40OVpIOW9hdGZuR0laeEVkSjJ6bDJJYVNQd2h2akVlNVlDdTJoSU5KcnJVWElZSm1aTURaR0dZOVAxRG9FbUszVU84dENHSVJUbXpoUGhuaXkyaG1FWG9BcmJtcVRTd2lUUlZETlo3ZnJxRFdWTDBjQ3hpOXRKQSs3VUpQcExPQ3pXeExmcCtuSFViTGxMeitZN2V0M2MzUHk3cmplUjNINmdOK1dPSDJWaHh0SFgrN1V0ZDNUcGhGYTBhVE5jbWJiV05tK1lOV0RQcTJCSjJrdHlyNmE5NStHQXhWVXJXbGkzVVYrNTJ0OGI4eU0zYnhhcXRwcVVvWnBRajJ0c2x6eEcyWVF2WExpQ3cwZWxvZXcxbmhCcWo1eDJYQzVqcG1XRDFMNUY3LzhINTNhWnFDa0tBQUE9In0= -->
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["candy_item"],"name":[1],"type":["chr"],"align":["left"]}],"data":[{"1":"[Butterfinger]"},{"1":"[100 Grand Bar]"},{"1":"[Anonymous brown globs that come in black and orange wrappers]"},{"1":"[Any full-sized candy bar]"},{"1":"[Black Jacks]"},{"1":"[Bonkers]"},{"1":"[Bottle Caps]"},{"1":"[Box’o’ Raisins]"},{"1":"[Brach products (not including candy corn)]"},{"1":"[Bubble Gum]"},{"1":"[Cadbury Creme Eggs]"},{"1":"[Candy Corn]"},{"1":"[Vials of pure high fructose corn syrup, for main-lining into your vein]"},{"1":"[Candy that is clearly just the stuff given out for free at restaurants]"},{"1":"[Chiclets]"},{"1":"[Caramellos]"},{"1":"[Snickers]"},{"1":"[Dark Chocolate Hershey]"},{"1":"[Dots]"},{"1":"[Fuzzy Peaches]"},{"1":"[Goo Goo Clusters]"},{"1":"[Good N' Plenty]"},{"1":"[Gum from baseball cards]"},{"1":"[Gummy Bears straight up]"},{"1":"[Heath Bar]"},{"1":"[Hershey’s Kissables]"},{"1":"[Hershey’s Milk Chocolate]"},{"1":"[Jolly Rancher (bad flavor)]"},{"1":"[Jolly Ranchers (good flavor)]"},{"1":"[Kinder Happy Hippo]"},{"1":"[Kit Kat]"},{"1":"[Hard Candy]"},{"1":"[LemonHeads]"},{"1":"[Licorice]"},{"1":"[Licorice (not black)]"},{"1":"[Lindt Truffle]"},{"1":"[Lollipops]"},{"1":"[Mars]"},{"1":"[Mary Janes]"},{"1":"[Maynards]"},{"1":"[Milk Duds]"},{"1":"[LaffyTaffy]"},{"1":"[JoyJoy (Mit Iodine)]"},{"1":"[Reggie Jackson Bar]"},{"1":"[Pixy Stix]"},{"1":"[Nerds]"},{"1":"[Nestle Crunch]"},{"1":"[Now'n'Laters]"},{"1":"[Pencils]"},{"1":"[Milky Way]"},{"1":"[Reese’s Peanut Butter Cups]"},{"1":"[Tolberone something or other]"},{"1":"[Runts]"},{"1":"[Junior Mints]"},{"1":"[Senior Mints]"},{"1":"[Mint Kisses]"},{"1":"[Mint Juleps]"},{"1":"[Mint Leaves]"},{"1":"[Peanut M&M’s]"},{"1":"[Regular M&Ms]"},{"1":"[Mint M&Ms]"},{"1":"[Ribbon candy]"},{"1":"[Rolos]"},{"1":"[Skittles]"},{"1":"[Smarties (American)]"},{"1":"[Smarties (Commonwealth)]"},{"1":"[Chick-o-Sticks (we don’t know what that is)]"},{"1":"[Starburst]"},{"1":"[Swedish Fish]"},{"1":"[Sweetums]"},{"1":"[Those odd marshmallow circus peanut things]"},{"1":"[Three Musketeers]"},{"1":"[Peterson Brand Sidewalk Chalk]"},{"1":"[Peanut Butter Bars]"},{"1":"[Trail Mix]"},{"1":"[Twix]"},{"1":"[York Peppermint Patties]"},{"1":"[Sea-salt flavored stuff, probably chocolate, since this is the \"it\" flavor of the year]"},{"1":"[Necco Wafers]"}],"options":{"columns":{"min":{},"max":[10],"total":[1]},"rows":{"min":[10],"max":[10],"total":[79]},"pages":{}}}
+  </script>
+</div>
+<!-- rnb-frame-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+</div>
 </div>
 <div id="inspect-data-within" class="section level1">
 <h1>Inspect data within</h1>
@@ -2845,7 +2883,7 @@ countries</li>
 <!-- rnb-text-end -->
 </div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiRGF0YSBleHBsb3JhdGlvbiIKb3V0cHV0OiBodG1sX25vdGVib29rCi0tLQoKYGBge3J9CmxpYnJhcnkodGlkeXZlcnNlKQpsaWJyYXJ5KHJlYWR4bCkKYGBgCgojIExvYWQgYW5kIGluc3BlY3QgZGF0YQoKYGBge3J9CmV4Y2VsX3NoZWV0cygiZGF0YS9ib2luZy1ib2luZy1jYW5keS0yMDE1Lnhsc3giKQpleGNlbF9zaGVldHMoImRhdGEvYm9pbmctYm9pbmctY2FuZHktMjAxNi54bHN4IikKZXhjZWxfc2hlZXRzKCJkYXRhL2JvaW5nLWJvaW5nLWNhbmR5LTIwMTcueGxzeCIpCmBgYAoKRWFjaCBleGNlbCBoYXMgb25seSBvbmUgc2hlZXQsIGVhY2ggZXhjZWwgZmlsZSBpcyBhIGRhdGFzZXQgZm9yIG9uZSB5ZWFyLiAKClJlYWQgdGhlc2UgaW46CmBgYHtyfQp4MjAxNSA8LSByZWFkX2V4Y2VsKCJkYXRhL2JvaW5nLWJvaW5nLWNhbmR5LTIwMTUueGxzeCIsIHNoZWV0ID0gIkZvcm0gUmVzcG9uc2VzIDEiKQp4MjAxNiA8LSByZWFkX2V4Y2VsKCJkYXRhL2JvaW5nLWJvaW5nLWNhbmR5LTIwMTYueGxzeCIsIHNoZWV0ID0gIkZvcm0gUmVzcG9uc2VzIDEiKQp4MjAxNyA8LSByZWFkX2V4Y2VsKCJkYXRhL2JvaW5nLWJvaW5nLWNhbmR5LTIwMTcueGxzeCIsIHNoZWV0ID0gInJlc3BvbnNlcyAoMikgKDEpLmNzdiIpCmBgYAoKCiMgQW5hbHlzaXMgcXVlc3Rpb25zCgpOb3RlOiBtb3JlIGluZm8gb24gdGhlIGRhdGEgc291cmNlIFtoZXJlXShodHRwczovL3d3dy5zY3EudWJjLmNhL3NvLW11Y2gtY2FuZHktZGF0YS1zZXJpb3VzbHkvKS4KCjEuIFdoYXQgaXMgdGhlIHRvdGFsIG51bWJlciBvZiBjYW5keSByYXRpbmdzIGdpdmVuIGFjcm9zcyB0aGUgdGhyZWUgeWVhcnMuIChOdW1iZXIgb2YgY2FuZHkgcmF0aW5ncywgbm90IHRoZSBudW1iZXIgb2YgcmF0ZXJzLiBEb27igJl0IGNvdW50IG1pc3NpbmcgdmFsdWVzKQoyLiBXaGF0IHdhcyB0aGUgYXZlcmFnZSBhZ2Ugb2YgcGVvcGxlIHdobyBhcmUgZ29pbmcgb3V0IHRyaWNrIG9yIHRyZWF0aW5nPwozLiBXaGF0IHdhcyB0aGUgYXZlcmFnZSBhZ2Ugb2YgcGVvcGxlIHdobyBhcmUgbm90IGdvaW5nIHRyaWNrIG9yIHRyZWF0aW5nPwo0LiBGb3IgZWFjaCBvZiBqb3ksIGRlc3BhaXIgYW5kIG1laCwgd2hpY2ggY2FuZHkgYmFyIHJlY2VpdmVkIHRoZSBtb3N0IG9mIHRoZXNlIHJhdGluZ3M/CjUuIEhvdyBtYW55IHBlb3BsZSByYXRlZCBTdGFyYnVyc3QgYXMgZGVzcGFpcj8KCkZvciB0aGUgbmV4dCB0aHJlZSBxdWVzdGlvbnMsIGNvdW50IGRlc3BhaXIgYXMgLTEsIGpveSBhcyArMSwgYW5kIG1laCBhcyAwLgo2LiBXaGF0IHdhcyB0aGUgbW9zdCBwb3B1bGFyIGNhbmR5IGJhciBieSB0aGlzIHJhdGluZyBzeXN0ZW0gZm9yIGVhY2ggZ2VuZGVyIGluIHRoZSBkYXRhc2V0ID8KNy4gV2hhdCB3YXMgdGhlIG1vc3QgcG9wdWxhciBjYW5keSBiYXIgaW4gZWFjaCB5ZWFyPwo4LiBXaGF0IHdhcyB0aGUgbW9zdCBwb3B1bGFyIGNhbmR5IGJhciBieSB0aGlzIHJhdGluZyBmb3IgcGVvcGxlIGluIFVTLCBDYW5hZGEsIFVLLCBhbmQgYWxsIG90aGVyIGNvdW50cmllcz8KCldoaWNoIHZhcmlhYmxlcyBkbyB3ZSBuZWVkIHRvIGFuc3dlciB0aGUgYW5hbHlzaXMgcXVlc3Rpb25zPyBXZSBuZWVkOgoqIEFsbCBjYW5keSByYXRpbmdzICgxIHJhdGluZyBvZiAxIGNhbmR5IGJhciBieSAxIHJhdGVyIGluIDEgeWVhciA9IDEgb2JzZXJ2YXRpb24pCiogQWdlIG9mIHJhdGVyLCB3aGVyZSBhdmFpbGFibGUKKiBXaGV0aGVyIG9yIG5vdCB0aGUgcmF0ZXIgZ29lcyBvdXQgdHJpY2sgb3IgdHJlYXRpbmcKKiBUbyBiZSBhYmxlIHRvIHN1bW1hcmlzZSBjb3VudCBvZiByYXRpbmdzIChqb3ksIG1laCwgZGVzcGFpcikgZm9yIGVhY2ggY2FuZHkgYmFyCiogR2VuZGVyIG9mIHJhdGVyLCB3aGVyZSBhdmFpbGFibGUKKiBUbyBiZSBhYmxlIHRvIGZpbHRlciBmb3IgU3RhcmJ1cnN0IGFuZCBjb3VudCBkZXNwYWlyIHJhdGluZ3MKKiBUbyBiZSBhYmxlIHRvIGNvbnZlcnQgcmF0aW5ncyB0byArMSwgMCwgLTEgYW5kIHN1bSBhY3Jvc3MgdGhlc2UgMyAobmV3IGNvbHVtbikKKiBUbyBiZSBhYmxlIHRvIGdyb3VwIGJ5IHllYXIKKiBUbyBiZSBhYmxlIHRvIGdyb3VwIGJ5IGNvdW50cnkKCiMgQXBwcm9hY2ggZm9yIGpvaW5pbmcgZGF0YSAoYW5kIG1ha2luZyBpdCAndGlkeScgbG9uZyBmb3JtYXQpCgpTdGVwIDE6IE1ha2UgdGlkeSBkYXRhOiAKICAqIFdlIHdhbnQgdmFyaWFibGVzOiByYXRlcl9pbmZvIChUb1RfYWN0aXZpdHksIGFnZSwgZ2VuZGVyLCBjb3VudHJ5KSwgcmF0aW5nX3llYXIsIHR5cGUgb2YgY2FuZHkgYmFyIDxjaHI+LCByYXRpbmcgKGpveSwgbWVoLCBkZXNwYWlyKSAKICAqIE1ha2Ugc3VyZSB2YXJpYWJsZXMgYXJlIGluIHNhbWUgKGFuZCBkZXNpcmVkKSBkYXRhIHR5cGUgaW4gYWxsIDMgZGZzCiAgKiBhZGQgYSBjb2x1bW4gZm9yIHllYXIgaW4gZWFjaCBkYXRhc2V0CiAgKiBhZGQgY29sdW1uIHdpdGggTkFzIGZvciBhbnkgb2YgdGhlIGFib3ZlIHZhcmlhYmxlcyB3aGVyZSBkYXRhIGRvZXMgbm90IGV4aXN0IGluIHRoYXQgeWVhcidzIGRmIAoKU3RlcCAyOiBKb2luIHRoZSB0aWR5IGRhdGFmcmFtZXMgKGFwcGVuZCByb3dzKQoqIFRyeSB0aWR5aW5nIGVhY2ggc2hlZXQgZmlyc3QsIHRoZW4gam9pbmluZyBhbGwgMyB0b2dldGhlci4gVGhlbiBkZWFsIHdpdGggaW5jb25zaXN0ZW50IGNhbmR5IGJhciBuYW1lcyBpbiBsYXRlciBjbGVhbmluZyBzdGVwLCBpLmUuOgogICogTWFrZSBtYXRjaGluZyB2YXJpYWJsZXMgYW5kIHJhdGVkIG9iamVjdHMgKGNhbmR5IGJhcnMpIGNvbnNpc3RlbnQgYWNyb3NzIHRoZSAzIGRhdGFmcmFtZXMKICAKQWltOiBJIHdhbnQgdG8gbWFrZSBvbmUgY29tYmluZWQgZGYuIHRoYXQgbG9va3MgbGlrZSB0aGUgZm9sbG93aW5nLCB3aGVyZWJ5IDEgcmF0aW5nIG9mIDEgY2FuZHkgaXRlbSBieSAxIHJhdGVyIGluIDEgeWVhciA9IDEgb2JzZXJ2YXRpb246Cgp8IFllYXIgPGR0dG0oIG9yIGludChZWVlZKT4gfCBHb2VzX1RvVCA8Y2hyIG9yIGxnbD4gIHwgQWdlIDxpbnQ+IHwgR2VuZGVyIDxjaHI+IHwgQ291bnRyeSA8Y2hyPiAgfCBDYW5keV9pdGVtIDxjaHI+IHwgUmF0aW5nIDxjaHI+ICB8IFtBbmQgbGF0ZXI6IFJhdGluZ192YWx1ZSA8ZGJsPl0gfAp8LS0tLXwtLS0tfC0tLS18LS0tLXwtLS0tfC0tLS18LS0tLXwtLS0tfAp8IDIwMTUgfCBUUlVFIHwgMjMgfCBNYWxlIHwgVVNBIHwgVHdpeCB8IEpPWSB8IDEgfAp8IDIwMTYgfCBGQUxTRSB8IDM2IHwgRmVtYWxlIHwgQ2FuYWRhICB8IFR3aXggfCBERVNQQUlSIHwgLTEgfAp8IDIwMTYgfCBGQUxTRSB8IDM2IHwgRmVtYWxlIHwgQ2FuYWRhICB8IFRyYWlsIG1peCB8IE1FSCB8IDAgfAoKIyMgVmFyaWFibGVzLCByb3dzIGFuZCBkYXRhIHR5cGVzCgpIZXJlLCBJIGhhdmUgaW5zcGVjdGVkIHRoZSB2YXJpYWJsZXMgd2l0aGluIGVhY2ggeWVhcidzIGRhdGFzZXQsIGFuZCBkZWNpZGVkIHdoYXQgdG8gcmVtb3ZlLCB3aGF0IHRvIGtlZXAgYW5kIGhvdyB0byBrZWVwIGl0LCB0byBhY2hpZXZlIHRoZSBhYm92ZSBhaW0gb2YgY29tYmluZWQgdGlkeSBkYXRhLgoKIyMjIDIwMTUKCmBgYHtyfQpuY29sKHgyMDE1KSAjIDEyNCBjb2x1bW5zCmNvbG5hbWVzKHgyMDE1KQpgYGAKCmBgYHtyfQpnbGltcHNlKHgyMDE1KSAjIDU2MzAgcm93cwojIGRhdGEgdHlwZXM6IG1vc3RseSA8Y2hyPiwgc29tZSA8bGdsPiBhdCBlbmQsIDEgPGR0dG0+IGF0IGJlZ2lubmluZwpgYGAKClZhcmlhYmxlcyB0byBrZWVwL2NvbnZlcnQ6Cgp8IENvbHVtbiAjIHwgQ3VycmVudCB2YXJpYWJsZSBuYW1lIDx0eXBlPiB8IEFjdGlvbiByZXF1aXJlZCB0byBtYWtlIHRpZHkgZGF0YSB8CnwgLS0tLS0gfCAtLS0tLSB8IC0tLS0tIHwKfCAxIHwgYFRpbWVzdGFtcGAgPGR0dG0+IHwgQ29udmVydCB0byBgWWVhcmAgPGR0dG0gKFlZWVkpPiB8CnwgMiB8IGBIb3cgb2xkIGFyZSB5b3U/YCA8Y2hyPiB8IENvbnZlcnQgdG8gYEFnZWAgPGludD4gfAp8IDMgfCBgQXJlIHlvdSBnb2luZyBhY3R1YWxseSBnb2luZyB0cmljayBvciB0cmVhdGluZyB5b3Vyc2VsZj9gIDxjaHI+IHwgIENvbnZlcnQgdG8gYEdvZXNfVG9UYCA8Y2hyIG9yIGxnbD4gfAp8IDQtOTYsMTE0LDExNSB8IGBDYW5keSBvciBvdGhlciBzdWJzdGFuY2VgIDxjaHI+IHwgUmVtb3ZlIG5vbi1jYW5keSBpdGVtcyAoc2VlIGJlbG93KSB0aGVuIG1ha2UgdGlkeSAtPiBgQ2FuZHlfaXRlbWAgPGNocj4gKyBgUmF0aW5nYCA8Y2hyPiB8CnwgOTcsMTAwLTExMywxMTYtMTI0IHwgTWlzY2VsbGFuZW91cyAgfCBSZW1vdmUgfAp8IDk4IHwgYFBsZWFzZSBsaXN0IGFueSBpdGVtcyBub3QgaW5jbHVkZWQgYWJvdmUgdGhhdCBnaXZlIHlvdSBKT1kuYCB8IEV4dHJhY3QgYW5zd2VycyAtLT4gbmV3IGNvbHMgd2l0aCBKT1kgYXMgdmFsdWUsIGFuZCBpbmNsdWRlIGluIHRpZHlpbmcgc3RlcCB8CnwgOTkgfCBgUGxlYXNlIGxpc3QgYW55IGl0ZW1zIG5vdCBpbmNsdWRlZCBhYm92ZSB0aGF0IGdpdmUgeW91IERFU1BBSVIuYCB8IEV4dHJhY3QgYW5zd2VycyAtLT4gbmV3IGNvbHMgd2l0aCBERVNQQUlSIGFzIHZhbHVlLCBhbmQgaW5jbHVkZSBpbiB0aWR5aW5nIHN0ZXAgfAoKRGVjaXNpb25zIG9uIHZhcmlhYmxlcyB0byBrZWVwL3JlbW92ZToKCiogU29tZSBhcmUgbm90IGNhbmR5IChlaXRoZXIgb2J2aW91c2x5IG9yIGJ5IHNlYXJjaGluZyBvbmxpbmUpLCBzbyByZW1vdmVkOgogICogT3RoZXIgZm9vZCBpdGVtcywgbm90IGNhbmR5OiBgSGVhbHRoeSBmcnVpdGAsIGBLYWxlIHNtb290aGllYCwgYE1pbmliYWdzIG9mIGNoaXBzYCwgYFNwb3R0ZWQgRGlja2AsIGBQZWFudXQgYnV0dGVyIGphcnNgLCBgV2hpdGUgYnJlYWRgLCBgV2hvbGUgd2hlYXQgYW55dGhpbmdgCiAgKiBQaGFybWFjZXV0aWNhbHM6IGBbR2VuZXJpYyBCcmFuZCBBY2V0YW1pbm9waGVuXWAsIGBbVmljb2Rpbl1gCiAgKiBvdGhlciBpdGVtcywgbm90IGZvb2Q6IGBDYXNoLi4uYCwgYERlbnRhbCBwYXJhcGhlbmFsaWFgLCBgR2xvdyBzdGlja3NgLCBgQnJva2VuIGdsb3cgc3RpY2tgLCBgQ3JlZXB5IFJlbGlnaW91cyBjb21pY3MuLi5gLCBgSHVncy4uLmAsIGBMYXBlbCBwaW5zYAoqIEl0ZW1zIGtlcHQgaW4gaW5jbHVkZSBjYW5keSB0aGF0IEkgcmVjb2duaXNlIGJ5IG5hbWUgb3IgaGF2ZSBpZGVudGlmaWVkIGFzIGNhbmR5IGJ5IHNlYXJjaGluZyBvbmxpbmUsIGZvciBleGFtcGxlOgogICogYFBlbmNpbHNgLCBgUGV0ZXJzb24gQnJhbmQgc2lkZXdhbGsgY2hhbGtgLCBgVHJhaWwgbWl4YCAtIG5vdGUgZGVjaWRlZCB0byBrZWVwIHRoaXMgaW4gYXMgaXQgaXMgYSBoaWdoIHN1Z2FyIGNvbnRlbnQgc25hY2suCgoKCgojIyMgMjAxNgoKYGBge3J9Cm5jb2woeDIwMTYpICMgMTIzIGNvbHVtbnMKY29sbmFtZXMoeDIwMTYpCmBgYAoKYGBge3J9CmdsaW1wc2UoeDIwMTYpICMgMTI1OSByb3dzCiMgZGF0YSB0eXBlczogbW9zdGx5IDxjaHI+LCAxIDxsZ2w+IGF0IGVuZCwgMSA8ZHR0bT4gYXQgYmVnaW5uaW5nCmBgYAoKIyMjIDIwMTcKCmBgYHtyfQpuY29sKHgyMDE3KSAjIDEyMCBjb2x1bW5zCmNvbG5hbWVzKHgyMDE3KQpgYGAKCmBgYHtyfQpnbGltcHNlKHgyMDE3KSAjIDI0NjAgcm93cwojIGRhdGEgdHlwZXM6IG1vc3RseSA8Y2hyPiwgc29tZSA8ZGJsPiwgbm8gPGxnbD4KYGBgCgoKCgoKIyBJbnNwZWN0IGRhdGEgd2l0aGluCgoqIGZpbmQgbWlzc2luZyB2YWx1ZXMsIE5BcwoqIGNsZWFuIHVwIGNvdW50cnkgY29sdW1uIC0gbmVlZCBVU0EsIENhbmFkYSwgVUssIGFsbCBvdGhlciBjb3VudHJpZXMKKiBjbGVhbiB1cCBhbnkgb3RoZXIgZGF0YSwgZS5nLiBjaGFyYWN0ZXIKCg==</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiRGF0YSBleHBsb3JhdGlvbiIKb3V0cHV0OiBodG1sX25vdGVib29rCi0tLQoKYGBge3J9CmxpYnJhcnkodGlkeXZlcnNlKQpsaWJyYXJ5KHJlYWR4bCkKbGlicmFyeShqYW5pdG9yKQpgYGAKCiMgTG9hZCBhbmQgaW5zcGVjdCBkYXRhCgpgYGB7cn0KZXhjZWxfc2hlZXRzKCJkYXRhL2JvaW5nLWJvaW5nLWNhbmR5LTIwMTUueGxzeCIpCmV4Y2VsX3NoZWV0cygiZGF0YS9ib2luZy1ib2luZy1jYW5keS0yMDE2Lnhsc3giKQpleGNlbF9zaGVldHMoImRhdGEvYm9pbmctYm9pbmctY2FuZHktMjAxNy54bHN4IikKYGBgCgpFYWNoIGV4Y2VsIGhhcyBvbmx5IG9uZSBzaGVldCwgZWFjaCBleGNlbCBmaWxlIGlzIGEgZGF0YXNldCBmb3Igb25lIHllYXIuIAoKUmVhZCB0aGVzZSBpbjoKYGBge3J9CngyMDE1IDwtIHJlYWRfZXhjZWwoImRhdGEvYm9pbmctYm9pbmctY2FuZHktMjAxNS54bHN4Iiwgc2hlZXQgPSAiRm9ybSBSZXNwb25zZXMgMSIpCngyMDE2IDwtIHJlYWRfZXhjZWwoImRhdGEvYm9pbmctYm9pbmctY2FuZHktMjAxNi54bHN4Iiwgc2hlZXQgPSAiRm9ybSBSZXNwb25zZXMgMSIpCngyMDE3IDwtIHJlYWRfZXhjZWwoImRhdGEvYm9pbmctYm9pbmctY2FuZHktMjAxNy54bHN4Iiwgc2hlZXQgPSAicmVzcG9uc2VzICgyKSAoMSkuY3N2IikKYGBgCgoKIyBBbmFseXNpcyBxdWVzdGlvbnMKCk5vdGU6IG1vcmUgaW5mbyBvbiB0aGUgZGF0YSBzb3VyY2UgW2hlcmVdKGh0dHBzOi8vd3d3LnNjcS51YmMuY2Evc28tbXVjaC1jYW5keS1kYXRhLXNlcmlvdXNseS8pLgoKMS4gV2hhdCBpcyB0aGUgdG90YWwgbnVtYmVyIG9mIGNhbmR5IHJhdGluZ3MgZ2l2ZW4gYWNyb3NzIHRoZSB0aHJlZSB5ZWFycy4gKE51bWJlciBvZiBjYW5keSByYXRpbmdzLCBub3QgdGhlIG51bWJlciBvZiByYXRlcnMuIERvbuKAmXQgY291bnQgbWlzc2luZyB2YWx1ZXMpCjIuIFdoYXQgd2FzIHRoZSBhdmVyYWdlIGFnZSBvZiBwZW9wbGUgd2hvIGFyZSBnb2luZyBvdXQgdHJpY2sgb3IgdHJlYXRpbmc/CjMuIFdoYXQgd2FzIHRoZSBhdmVyYWdlIGFnZSBvZiBwZW9wbGUgd2hvIGFyZSBub3QgZ29pbmcgdHJpY2sgb3IgdHJlYXRpbmc/CjQuIEZvciBlYWNoIG9mIGpveSwgZGVzcGFpciBhbmQgbWVoLCB3aGljaCBjYW5keSBiYXIgcmVjZWl2ZWQgdGhlIG1vc3Qgb2YgdGhlc2UgcmF0aW5ncz8KNS4gSG93IG1hbnkgcGVvcGxlIHJhdGVkIFN0YXJidXJzdCBhcyBkZXNwYWlyPwoKRm9yIHRoZSBuZXh0IHRocmVlIHF1ZXN0aW9ucywgY291bnQgZGVzcGFpciBhcyAtMSwgam95IGFzICsxLCBhbmQgbWVoIGFzIDAuCjYuIFdoYXQgd2FzIHRoZSBtb3N0IHBvcHVsYXIgY2FuZHkgYmFyIGJ5IHRoaXMgcmF0aW5nIHN5c3RlbSBmb3IgZWFjaCBnZW5kZXIgaW4gdGhlIGRhdGFzZXQgPwo3LiBXaGF0IHdhcyB0aGUgbW9zdCBwb3B1bGFyIGNhbmR5IGJhciBpbiBlYWNoIHllYXI/CjguIFdoYXQgd2FzIHRoZSBtb3N0IHBvcHVsYXIgY2FuZHkgYmFyIGJ5IHRoaXMgcmF0aW5nIGZvciBwZW9wbGUgaW4gVVMsIENhbmFkYSwgVUssIGFuZCBhbGwgb3RoZXIgY291bnRyaWVzPwoKV2hpY2ggdmFyaWFibGVzIGRvIHdlIG5lZWQgdG8gYW5zd2VyIHRoZSBhbmFseXNpcyBxdWVzdGlvbnM/IFdlIG5lZWQ6CiogQWxsIGNhbmR5IHJhdGluZ3MgKDEgcmF0aW5nIG9mIDEgY2FuZHkgYmFyIGJ5IDEgcmF0ZXIgaW4gMSB5ZWFyID0gMSBvYnNlcnZhdGlvbikKKiBBZ2Ugb2YgcmF0ZXIsIHdoZXJlIGF2YWlsYWJsZQoqIFdoZXRoZXIgb3Igbm90IHRoZSByYXRlciBnb2VzIG91dCB0cmljayBvciB0cmVhdGluZwoqIFRvIGJlIGFibGUgdG8gc3VtbWFyaXNlIGNvdW50IG9mIHJhdGluZ3MgKGpveSwgbWVoLCBkZXNwYWlyKSBmb3IgZWFjaCBjYW5keSBiYXIKKiBHZW5kZXIgb2YgcmF0ZXIsIHdoZXJlIGF2YWlsYWJsZQoqIFRvIGJlIGFibGUgdG8gZmlsdGVyIGZvciBTdGFyYnVyc3QgYW5kIGNvdW50IGRlc3BhaXIgcmF0aW5ncwoqIFRvIGJlIGFibGUgdG8gY29udmVydCByYXRpbmdzIHRvICsxLCAwLCAtMSBhbmQgc3VtIGFjcm9zcyB0aGVzZSAzIChuZXcgY29sdW1uKQoqIFRvIGJlIGFibGUgdG8gZ3JvdXAgYnkgeWVhcgoqIFRvIGJlIGFibGUgdG8gZ3JvdXAgYnkgY291bnRyeQoKIyBBcHByb2FjaCBmb3Igam9pbmluZyBkYXRhIChhbmQgbWFraW5nIGl0ICd0aWR5JyBsb25nIGZvcm1hdCkKClN0ZXAgMTogTWFrZSB0aWR5IGRhdGE6IAogICogV2Ugd2FudCB2YXJpYWJsZXM6IHJhdGVyX2luZm8gKFRvVF9hY3Rpdml0eSwgYWdlLCBnZW5kZXIsIGNvdW50cnkpLCByYXRpbmdfeWVhciwgdHlwZSBvZiBjYW5keSBiYXIgPGNocj4sIHJhdGluZyAoam95LCBtZWgsIGRlc3BhaXIpIAogICogTWFrZSBzdXJlIHZhcmlhYmxlcyBhcmUgaW4gc2FtZSAoYW5kIGRlc2lyZWQpIGRhdGEgdHlwZSBpbiBhbGwgMyBkZnMKICAqIGFkZCBhIGNvbHVtbiBmb3IgeWVhciBpbiBlYWNoIGRhdGFzZXQKICAqIGFkZCBjb2x1bW4gd2l0aCBOQXMgZm9yIGFueSBvZiB0aGUgYWJvdmUgdmFyaWFibGVzIHdoZXJlIGRhdGEgZG9lcyBub3QgZXhpc3QgaW4gdGhhdCB5ZWFyJ3MgZGYgCgpTdGVwIDI6IEpvaW4gdGhlIHRpZHkgZGF0YWZyYW1lcyAoYXBwZW5kIHJvd3MpCiogVHJ5IHRpZHlpbmcgZWFjaCBzaGVldCBmaXJzdCwgdGhlbiBqb2luaW5nIGFsbCAzIHRvZ2V0aGVyLiBUaGVuIGRlYWwgd2l0aCBpbmNvbnNpc3RlbnQgY2FuZHkgYmFyIG5hbWVzIGluIGxhdGVyIGNsZWFuaW5nIHN0ZXAsIGkuZS46CiAgKiBNYWtlIG1hdGNoaW5nIHZhcmlhYmxlcyBhbmQgcmF0ZWQgb2JqZWN0cyAoY2FuZHkgYmFycykgY29uc2lzdGVudCBhY3Jvc3MgdGhlIDMgZGF0YWZyYW1lcwogIApBaW06IEkgd2FudCB0byBtYWtlIG9uZSBjb21iaW5lZCBkZi4gdGhhdCBsb29rcyBsaWtlIHRoZSBmb2xsb3dpbmcsIHdoZXJlYnkgMSByYXRpbmcgb2YgMSBjYW5keSBpdGVtIGJ5IDEgcmF0ZXIgaW4gMSB5ZWFyID0gMSBvYnNlcnZhdGlvbjoKCnwgeWVhciA8ZHR0bSggb3IgaW50KFlZWVkpPiB8IGlkIDxpbnQ+IHwgYWdlIDxpbnQ+IHwgZ2VuZGVyIDxjaHI+IHwgY291bnRyeSA8Y2hyPiB8IGdvZXNfdHJpY2tfb3JfdHJlYXRpbmcgPGNociBvciBsZ2w+IHwgY2FuZHlfaXRlbSA8Y2hyPiB8IHJhdGluZyA8Y2hyPiAgfCBbQW5kIGxhdGVyOiByYXRpbmdfdmFsdWUgPGRibD5dIHwKfC0tLS18LS0tLXwtLS0tfC0tLS18LS0tLXwtLS0tfC0tLS18LS0tLXwtLS0tfAp8IDIwMTUgfCA1MDU4IHwgMjMgfCBNYWxlIHwgVVNBIHwgVFJVRSB8IFR3aXggfCBKT1kgfCAxIHwKfCAyMDE2IHwgMTEyMyB8IDM2IHwgRmVtYWxlIHwgQ2FuYWRhIHwgRkFMU0UgfCBUd2l4IHwgREVTUEFJUiB8IC0xIHwKfCAyMDE2IHwgMTEyMyB8IDM2IHwgRmVtYWxlIHwgQ2FuYWRhIHwgRkFMU0UgfCBUcmFpbCBtaXggfCBNRUggfCAwIHwKCiMjIFZhcmlhYmxlcywgcm93cyBhbmQgZGF0YSB0eXBlcwoKSGVyZSwgSSBoYXZlIGluc3BlY3RlZCB0aGUgdmFyaWFibGVzIHdpdGhpbiBlYWNoIHllYXIncyBkYXRhc2V0LCBhbmQgZGVjaWRlZCB3aGF0IHRvIHJlbW92ZSwgd2hhdCB0byBrZWVwIGFuZCBob3cgdG8ga2VlcCBpdCwgdG8gYWNoaWV2ZSB0aGUgYWJvdmUgYWltIG9mIGNvbWJpbmVkIHRpZHkgZGF0YS4KCiMjIyAyMDE1CgpgYGB7cn0KbmNvbCh4MjAxNSkgIyAxMjQgY29sdW1ucwpjb2xuYW1lcyh4MjAxNSkKYGBgCgpgYGB7cn0KZ2xpbXBzZSh4MjAxNSkgIyA1NjMwIHJvd3MKIyBkYXRhIHR5cGVzOiBtb3N0bHkgPGNocj4sIHNvbWUgPGxnbD4gYXQgZW5kLCAxIDxkdHRtPiBhdCBiZWdpbm5pbmcKYGBgCgpWYXJpYWJsZXMgdG8ga2VlcC9jb252ZXJ0OgoKfCBDb2x1bW4gIyB8IEN1cnJlbnQgdmFyaWFibGUgbmFtZSA8dHlwZT4gfCBBY3Rpb24gcmVxdWlyZWQgdG8gbWFrZSB0aWR5IGRhdGEgfAp8IC0tLS0tIHwgLS0tLS0gfCAtLS0tLSB8CnwgMSB8IGBUaW1lc3RhbXBgIDxkdHRtPiB8IENvbnZlcnQgdG8gYHllYXJgIDxkdHRtIChZWVlZKT4gfAp8IDIgfCBgSG93IG9sZCBhcmUgeW91P2AgPGNocj4gfCBDb252ZXJ0IHRvIGBhZ2VgIDxpbnQ+IHwKfCAzIHwgYEFyZSB5b3UgZ29pbmcgYWN0dWFsbHkgZ29pbmcgdHJpY2sgb3IgdHJlYXRpbmcgeW91cnNlbGY/YCA8Y2hyPiB8ICBDb252ZXJ0IHRvIGBnb2VzX3RyaWNrX29yX3RyZWF0aW5nYCA8Y2hyIG9yIGxnbD4gfAp8IDQtMTcsMTktMjIsMjQtMjUsMjktMzIsMzUtMzcsMzktNDAsNDItNDQsNDYtNTUsNTctODEsODMtODksOTEtOTIsOTYsMTE0LDExNSB8IGBDYW5keSBvciBvdGhlciBzdWJzdGFuY2VgIDxjaHI+IHwgUmVtb3ZlIG5vbi1jYW5keSBpdGVtcyAoc2VlIGJlbG93KSB0aGVuIG1ha2UgdGlkeSAtPiBgQ2FuZHlfaXRlbWAgPGNocj4gKyBgUmF0aW5nYCA8Y2hyPiB8CnwgOTcsMTAwLTExMywxMTYtMTI0IHwgTWlzY2VsbGFuZW91cyAgfCBSZW1vdmUgfAp8IDk4IHwgYFBsZWFzZSBsaXN0IGFueSBpdGVtcyBub3QgaW5jbHVkZWQgYWJvdmUgdGhhdCBnaXZlIHlvdSBKT1kuYCB8IEV4dHJhY3QgYW5zd2VycyAtLT4gbmV3IGNvbHMgd2l0aCBKT1kgYXMgdmFsdWUsIGFuZCBpbmNsdWRlIGluIHRpZHlpbmcgc3RlcCB8CnwgOTkgfCBgUGxlYXNlIGxpc3QgYW55IGl0ZW1zIG5vdCBpbmNsdWRlZCBhYm92ZSB0aGF0IGdpdmUgeW91IERFU1BBSVIuYCB8IEV4dHJhY3QgYW5zd2VycyAtLT4gbmV3IGNvbHMgd2l0aCBERVNQQUlSIGFzIHZhbHVlLCBhbmQgaW5jbHVkZSBpbiB0aWR5aW5nIHN0ZXAgfAoKRGVjaXNpb25zIG9uIHZhcmlhYmxlcyB0byBrZWVwL3JlbW92ZToKCiogU29tZSBhcmUgbm90IGNhbmR5IChlaXRoZXIgb2J2aW91c2x5IG9yIGJ5IHNlYXJjaGluZyBvbmxpbmUpLCBzbyByZW1vdmVkOgogICogT3RoZXIgZm9vZCBpdGVtcywgbm90IGNhbmR5OiBbMzRdIGBIZWFsdGh5IGZydWl0YCwgWzQxXSBgS2FsZSBzbW9vdGhpZWAsIFs1Nl0gYE1pbmliYWdzIG9mIGNoaXBzYCAoY3Jpc3BzLCBub3QgY2FuZHkpLCBbODJdIGBTcG90dGVkIERpY2tgIChjYWtlLCBub3QgY2FuZHkpLCBbOTBdIGBQZWFudXQgYnV0dGVyIGphcnNgIChudXQgYnV0dGVyLCBub3QgY2FuZHkpLCBbOTRdIGBXaGl0ZSBicmVhZGAsIFs5NV0gYFdob2xlIHdoZWF0IGFueXRoaW5nYAogICogUGhhcm1hY2V1dGljYWxzOiBbMjZdIGBbR2VuZXJpYyBCcmFuZCBBY2V0YW1pbm9waGVuXWAsIFs5M10gYFtWaWNvZGluXWAKICAqIG90aGVyIGl0ZW1zLCBub3QgZm9vZDogWzE4XSBgQ2FzaC4uLmAsIFsyM10gYERlbnRhbCBwYXJhcGhlbmFsaWFgLCBbMjddIGBHbG93IHN0aWNrc2AsIFsyOF0gYEJyb2tlbiBnbG93IHN0aWNrYCwgWzMzXSBgQ3JlZXB5IFJlbGlnaW91cyBjb21pY3MuLi5gLCBbMzhdIGBIdWdzLi4uYCwgWzQ1XSBgTGFwZWwgcGluc2AKKiBJdGVtcyBrZXB0IGluIGluY2x1ZGUgY2FuZHkgdGhhdCBJIHJlY29nbmlzZSBieSBuYW1lIG9yIGhhdmUgaWRlbnRpZmllZCBhcyBjYW5keSBieSBzZWFyY2hpbmcgb25saW5lLCBmb3IgZXhhbXBsZToKICAqIFs2M10gYFBlbmNpbHNgLCBbODhdIGBQZXRlcnNvbiBCcmFuZCBzaWRld2FsayBjaGFsa2AsIFs5MV0gYFRyYWlsIG1peGAgLSBub3RlIGRlY2lkZWQgdG8ga2VlcCB0aGlzIGluIGFzIGl0IGlzIGEgaGlnaCBzdWdhciBjb250ZW50IHNuYWNrLgoKYGBge3IgMjAxNS1zdWJzZXR9CiMga2VlcCB3YW50ZWQgY29sdW1ucyAoZXhjZXB0IDk4LTk5KQp4MjAxNV9zdWJzZXQgPC0geDIwMTUgJT4lIAogIHNlbGVjdCgxOjE3LDE5OjIyLDI0LDI1LDI5OjMyLDM1OjM3LDM5OjQwLDQyOjQ0LDQ2OjU1LDU3OjgxLDgzOjg5LDkxLDkyLDk2LDExNCwxMTUpCgpoZWFkKHgyMDE1X3N1YnNldCkgIyA4MiB2YXJpYWJsZXMKCiMgcmVuYW1lIHZhcmlhYmxlcyBhYm91dCB0aGUgcmF0ZXIgJiByYXRpbmcgeWVhcgojIGFuZCByZXBvc2l0aW9uIHRvIGVuZCB3aXRoOiAKIyBbMV15ZWFyIFsyXWFnZSBbM11nZW5kZXIgWzRdY291bnRyeSBbNV1nb2VzX3RyaWNrX29yX3RyZWF0aW5nCngyMDE1X3N1YnNldF9jb252ZXJ0ZWQgPC0geDIwMTVfc3Vic2V0ICU+JSAKICByZW5hbWUoYWdlID0gIkhvdyBvbGQgYXJlIHlvdT8iLAogICAgICAgICAgZ29lc190cmlja19vcl90cmVhdGluZyA9ICJBcmUgeW91IGdvaW5nIGFjdHVhbGx5IGdvaW5nIHRyaWNrIG9yIHRyZWF0aW5nIHlvdXJzZWxmPyIsCiAgICAgICAgICB5ZWFyID0gIlRpbWVzdGFtcCIpICU+JSAKICBtdXRhdGUoYWdlID0gYXMuaW50ZWdlcihhZ2UpLCAjIG5vdGUgY29lcmNlcyA5LjBlMjIgaW4gcm93IDkgdG8gTkEKICAgICAgICAgeWVhciA9IGFzLm51bWVyaWMoZm9ybWF0KHllYXIsICIlWSIpKSkgJT4lIAogICMgbWFrZSBlbXB0eSBjb2x1bW5zIGZvciBnZW5kZXIgYW5kIGNvdW50cnkgKG1pc3NpbmcgaW4gdGhpcyB5ZWFyJ3MgZGF0YXNldCkKICBtdXRhdGUoZ2VuZGVyID0gcmVwKE5BX2NoYXJhY3Rlcl8sIG5yb3coeDIwMTVfc3Vic2V0KSksIC5hZnRlciA9IGFnZSkgJT4lIAogIG11dGF0ZShjb3VudHJ5ID0gcmVwKE5BX2NoYXJhY3Rlcl8sIG5yb3coeDIwMTVfc3Vic2V0KSksIC5hZnRlciA9IGdlbmRlcikgJT4lIAogICMgbWFrZSBhbiBpZCBjb2x1bW4gdG8gcmV0YWluIHVuaXF1ZSBpZGVudGlmaWVyIGZvciBlYWNoIHBlcnNvbgogIG11dGF0ZShpZCA9IGMoMTo1NjMwKSwgLmJlZm9yZSA9IGFnZSkKCiMgTm90ZTogbXV0YXRlKGdvZXNfdHJpY2tfb3JfdHJlYXRpbmcgPSBhcy5sb2dpY2FsKGdvZXNfdHJpY2tfb3JfdHJlYXRpbmcpKQojIGNvZXJjZXMgdG8gTkEsIG5lZWQgZGlmZmVyZW50IGFwcHJvYWNoIHRvIG1ha2UgVC9GCgpkaW0oeDIwMTVfc3Vic2V0X2NvbnZlcnRlZCkgIyA4NSBjb2xzIHggNTYzMCBvYnNlcnZhdGlvbnMKaGVhZCh4MjAxNV9zdWJzZXRfY29udmVydGVkKSAjIGNvbHMgMTo2IGFyZSByYXRlcl9pbmZvLCA2Xzg0IGFyZSBjYW5keSBpdGVtcwoKIyAndGlkeScgc3Vic2V0dGVkIGRhdGEgdG8gbG9uZyBmb3JtYXQgd2l0aAojIG9uZSBjb2x1bW4gZm9yIGNhbmR5IGl0ZW1zIFs2Ojg0XSwgb25lIGNvbHVtbiBmb3IgcmF0aW5nCiMgZXhwZWN0IDU2MzAgeCA4NSB0byBiZWNvbWUgCiMgKDU2MzAgcmF0ZXJzICogNzkgaXRlbXMpIHggOCA9IDQ0NCw3NzAgeCA4CngyMDE1X3RpZHkgPC0geDIwMTVfc3Vic2V0X2NvbnZlcnRlZCAlPiUgCiAgcGl2b3RfbG9uZ2VyKGNvbHMgPSAtYyh5ZWFyLCBpZCwgYWdlLCBnZW5kZXIsIGNvdW50cnksIGdvZXNfdHJpY2tfb3JfdHJlYXRpbmcpLAogICAgICAgICAgICAgICBuYW1lc190byA9ICJjYW5keV9pdGVtIiwKICAgICAgICAgICAgICAgdmFsdWVzX3RvID0gInJhdGluZyIKICAgICAgICAgICAgICAgKQpkaW0oeDIwMTVfdGlkeSkgIyA0NDQsNzcwIG9icyB4IDggdmFyIC0gYXMgZXhwZWN0ZWQKaGVhZCh4MjAxNV90aWR5LCBuID0gMjApCnRhaWwoeDIwMTVfdGlkeSwgbiA9IDIwKQpgYGAKTkVYVDogZGVhbCB3aXRoIGNvbHVtbiA5OC05OSBpbiB4MjAxNSAtLT4gaXRlbSAmIHJhdGluZywgd2l0aCByYXRlciBpZC4KCgojIyMgMjAxNgoKYGBge3J9Cm5jb2woeDIwMTYpICMgMTIzIGNvbHVtbnMKY29sbmFtZXMoeDIwMTYpCmBgYAoKYGBge3J9CmdsaW1wc2UoeDIwMTYpICMgMTI1OSByb3dzCiMgZGF0YSB0eXBlczogbW9zdGx5IDxjaHI+LCAxIDxsZ2w+IGF0IGVuZCwgMSA8ZHR0bT4gYXQgYmVnaW5uaW5nCmBgYAoKIyMjIDIwMTcKCmBgYHtyfQpuY29sKHgyMDE3KSAjIDEyMCBjb2x1bW5zCmNvbG5hbWVzKHgyMDE3KQpgYGAKCmBgYHtyfQpnbGltcHNlKHgyMDE3KSAjIDI0NjAgcm93cwojIGRhdGEgdHlwZXM6IG1vc3RseSA8Y2hyPiwgc29tZSA8ZGJsPiwgbm8gPGxnbD4KYGBgCgoKCiMjIENoZWNrIGNvbnNpc3RlbmN5IG9mIGNhbmR5IGl0ZW1zIGluIGVhY2ggeWVhcgoKYGBge3J9CiMgbGlzdCBjYW5keSBpdGVtcyBpbiAyMDE1IGRhdGEKeDIwMTVfdGlkeSAlPiUgCiAgZGlzdGluY3QoY2FuZHlfaXRlbSkKYGBgCgoKIyBJbnNwZWN0IGRhdGEgd2l0aGluCgoqIGZpbmQgbWlzc2luZyB2YWx1ZXMsIE5BcwoqIGNsZWFuIHVwIGNvdW50cnkgY29sdW1uIC0gbmVlZCBVU0EsIENhbmFkYSwgVUssIGFsbCBvdGhlciBjb3VudHJpZXMKKiBjbGVhbiB1cCBhbnkgb3RoZXIgZGF0YSwgZS5nLiBjaGFyYWN0ZXIKCg==</div>
 
 
 

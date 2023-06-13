@@ -6,6 +6,7 @@ output: html_notebook
 ```{r}
 library(tidyverse)
 library(readxl)
+library(janitor)
 ```
 
 # Load and inspect data
@@ -66,11 +67,11 @@ Step 2: Join the tidy dataframes (append rows)
   
 Aim: I want to make one combined df. that looks like the following, whereby 1 rating of 1 candy item by 1 rater in 1 year = 1 observation:
 
-| Year <dttm( or int(YYYY)> | Goes_ToT <chr or lgl>  | Age <int> | Gender <chr> | Country <chr>  | Candy_item <chr> | Rating <chr>  | [And later: Rating_value <dbl>] |
-|----|----|----|----|----|----|----|----|
-| 2015 | TRUE | 23 | Male | USA | Twix | JOY | 1 |
-| 2016 | FALSE | 36 | Female | Canada  | Twix | DESPAIR | -1 |
-| 2016 | FALSE | 36 | Female | Canada  | Trail mix | MEH | 0 |
+| year <dttm( or int(YYYY)> | id <int> | age <int> | gender <chr> | country <chr> | goes_trick_or_treating <chr or lgl> | candy_item <chr> | rating <chr>  | [And later: rating_value <dbl>] |
+|----|----|----|----|----|----|----|----|----|
+| 2015 | 5058 | 23 | Male | USA | TRUE | Twix | JOY | 1 |
+| 2016 | 1123 | 36 | Female | Canada | FALSE | Twix | DESPAIR | -1 |
+| 2016 | 1123 | 36 | Female | Canada | FALSE | Trail mix | MEH | 0 |
 
 ## Variables, rows and data types
 
@@ -92,10 +93,10 @@ Variables to keep/convert:
 
 | Column # | Current variable name <type> | Action required to make tidy data |
 | ----- | ----- | ----- |
-| 1 | `Timestamp` <dttm> | Convert to `Year` <dttm (YYYY)> |
-| 2 | `How old are you?` <chr> | Convert to `Age` <int> |
-| 3 | `Are you going actually going trick or treating yourself?` <chr> |  Convert to `Goes_ToT` <chr or lgl> |
-| 4-96,114,115 | `Candy or other substance` <chr> | Remove non-candy items (see below) then make tidy -> `Candy_item` <chr> + `Rating` <chr> |
+| 1 | `Timestamp` <dttm> | Convert to `year` <dttm (YYYY)> |
+| 2 | `How old are you?` <chr> | Convert to `age` <int> |
+| 3 | `Are you going actually going trick or treating yourself?` <chr> |  Convert to `goes_trick_or_treating` <chr or lgl> |
+| 4-17,19-22,24-25,29-32,35-37,39-40,42-44,46-55,57-81,83-89,91-92,96,114,115 | `Candy or other substance` <chr> | Remove non-candy items (see below) then make tidy -> `Candy_item` <chr> + `Rating` <chr> |
 | 97,100-113,116-124 | Miscellaneous  | Remove |
 | 98 | `Please list any items not included above that give you JOY.` | Extract answers --> new cols with JOY as value, and include in tidying step |
 | 99 | `Please list any items not included above that give you DESPAIR.` | Extract answers --> new cols with DESPAIR as value, and include in tidying step |
@@ -103,13 +104,54 @@ Variables to keep/convert:
 Decisions on variables to keep/remove:
 
 * Some are not candy (either obviously or by searching online), so removed:
-  * Other food items, not candy: `Healthy fruit`, `Kale smoothie`, `Minibags of chips`, `Spotted Dick`, `Peanut butter jars`, `White bread`, `Whole wheat anything`
-  * Pharmaceuticals: `[Generic Brand Acetaminophen]`, `[Vicodin]`
-  * other items, not food: `Cash...`, `Dental paraphenalia`, `Glow sticks`, `Broken glow stick`, `Creepy Religious comics...`, `Hugs...`, `Lapel pins`
+  * Other food items, not candy: [34] `Healthy fruit`, [41] `Kale smoothie`, [56] `Minibags of chips` (crisps, not candy), [82] `Spotted Dick` (cake, not candy), [90] `Peanut butter jars` (nut butter, not candy), [94] `White bread`, [95] `Whole wheat anything`
+  * Pharmaceuticals: [26] `[Generic Brand Acetaminophen]`, [93] `[Vicodin]`
+  * other items, not food: [18] `Cash...`, [23] `Dental paraphenalia`, [27] `Glow sticks`, [28] `Broken glow stick`, [33] `Creepy Religious comics...`, [38] `Hugs...`, [45] `Lapel pins`
 * Items kept in include candy that I recognise by name or have identified as candy by searching online, for example:
-  * `Pencils`, `Peterson Brand sidewalk chalk`, `Trail mix` - note decided to keep this in as it is a high sugar content snack.
+  * [63] `Pencils`, [88] `Peterson Brand sidewalk chalk`, [91] `Trail mix` - note decided to keep this in as it is a high sugar content snack.
 
+```{r 2015-subset}
+# keep wanted columns (except 98-99)
+x2015_subset <- x2015 %>% 
+  select(1:17,19:22,24,25,29:32,35:37,39:40,42:44,46:55,57:81,83:89,91,92,96,114,115)
 
+head(x2015_subset) # 82 variables
+
+# rename variables about the rater & rating year
+# and reposition to end with: 
+# [1]year [2]age [3]gender [4]country [5]goes_trick_or_treating
+x2015_subset_converted <- x2015_subset %>% 
+  rename(age = "How old are you?",
+          goes_trick_or_treating = "Are you going actually going trick or treating yourself?",
+          year = "Timestamp") %>% 
+  mutate(age = as.integer(age), # note coerces 9.0e22 in row 9 to NA
+         year = as.numeric(format(year, "%Y"))) %>% 
+  # make empty columns for gender and country (missing in this year's dataset)
+  mutate(gender = rep(NA_character_, nrow(x2015_subset)), .after = age) %>% 
+  mutate(country = rep(NA_character_, nrow(x2015_subset)), .after = gender) %>% 
+  # make an id column to retain unique identifier for each person
+  mutate(id = c(1:5630), .before = age)
+
+# Note: mutate(goes_trick_or_treating = as.logical(goes_trick_or_treating))
+# coerces to NA, need different approach to make T/F
+
+dim(x2015_subset_converted) # 85 cols x 5630 observations
+head(x2015_subset_converted) # cols 1:6 are rater_info, 6_84 are candy items
+
+# 'tidy' subsetted data to long format with
+# one column for candy items [6:84], one column for rating
+# expect 5630 x 85 to become 
+# (5630 raters * 79 items) x 8 = 444,770 x 8
+x2015_tidy <- x2015_subset_converted %>% 
+  pivot_longer(cols = -c(year, id, age, gender, country, goes_trick_or_treating),
+               names_to = "candy_item",
+               values_to = "rating"
+               )
+dim(x2015_tidy) # 444,770 obs x 8 var - as expected
+head(x2015_tidy, n = 20)
+tail(x2015_tidy, n = 20)
+```
+NEXT: deal with column 98-99 in x2015 --> item & rating, with rater id.
 
 
 ### 2016
@@ -138,6 +180,13 @@ glimpse(x2017) # 2460 rows
 
 
 
+## Check consistency of candy items in each year
+
+```{r}
+# list candy items in 2015 data
+x2015_tidy %>% 
+  distinct(candy_item)
+```
 
 
 # Inspect data within
