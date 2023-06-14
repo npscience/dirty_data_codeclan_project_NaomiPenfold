@@ -785,18 +785,13 @@ Data looks clean, expected categories.
 
 ### Country
 
-### Recoding plan:
+
+
+### Summary from inspecting data:
 
 General:
-* for age > 125, recode age as NA
-* for country, recode any [0-9] as NA_character_
-
-
-Specifics (if not already recoded by general steps):
-
-| id | variable | current entry | recode to |
-| 20172213 | country | 1 | `NA_character_` -- do this by checking whole country column for numbers |
-
+* filter for age <= 1 & >= 125 when looking at age
+* for country, recode any [0-9] as NA_character_ = specifically: id = 20172213 has country = 1
 
 # Analysis
 
@@ -813,6 +808,7 @@ candy_raters_analysis <- candy_ratings_analysis %>%
 
 dim(candy_raters_analysis) # 9348 raters
 ```
+
 ## Q1: Total number of candy ratings
 
 _Q1. What is the total number of candy ratings given across the three years. (Number of candy ratings, not the number of raters. Don’t count missing values)_
@@ -828,6 +824,8 @@ Across 2015, 2016 and 2017, a total of **636,754 ratings** were provided.
 (Here, I have not filtered out strange ages, since people can enter incorrect info into the age field while also providing real ratings.)
 
 ## Q2+3: Average age by trick-or-treating activity
+
+**REDO: once recoded age from country column (2016 data issue)**
 
 ```{r}
 candy_raters_analysis %>% 
@@ -845,20 +843,134 @@ _Q3. What was the average age of people who are not going trick or treating?_
 Q3: Of the 7,877 raters who did not go out trick-or-treating, the average age was 39 years.
 
 
-## Q4: 
+## Q4: Candy items most-rated for each rating
 
 _Q4. For each of joy, despair and meh, which candy bar received the most of these ratings?_
 
+```{r}
+# most JOY rated candy bar
+candy_ratings_analysis %>% 
+  select(candy_item, candy_item_type, rating) %>% 
+  filter(rating == "JOY") %>% 
+  #group_by(candy_item) %>% 
+  group_by(candy_item_type) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count))
+```
 
-## Q5:
+The individual candy item with the most "JOY" ratings was **"Any full-sized candy bar" (7588 JOY ratings)**. This is generic, so the second-most JOY-rated candy item is also notable: **"Reese's Peanut Butter Cups" (7368 JOY ratings)**. However, when looking by type of candy item, the candy type with the most "JOY" was **"M&M's"** (of any type: blue, independent, etc; **total 20,257 JOY ratings**).
+
+```{r}
+# most MEH rated candy bar
+candy_ratings_analysis %>% 
+  select(candy_item, candy_item_type, rating) %>% 
+  filter(rating == "MEH") %>% 
+  #group_by(candy_item) %>% 
+  group_by(candy_item_type) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count))
+```
+
+The individual candy item with the most "MEH" ratings was **"Lollipops" (1570 MEH ratings)**. This is generic, and in second place, is "Hard Candy" (also generic). The first specific candy item is in third place, **"Bonkers (the candy)" (1488 MEH ratings)**.
+
+However, again when looking by type of candy item, the results are different: the candy type with the most "MEH" was again **"M&M's"** (of any type: blue, independent, etc; **total 5,409 MEH ratings**). The top 4 MEH-rated candy items here are all types of candy that I grouped earlier (M&Ms, Jolly Rancher, Smarties, Licorice).
+
+```{r}
+# most DESPAIR rated candy bar
+candy_ratings_analysis %>% 
+  select(candy_item, candy_item_type, rating) %>% 
+  filter(rating == "DESPAIR") %>% 
+  #group_by(candy_item) %>% 
+  group_by(candy_item_type) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count))
+```
+
+The individual candy item with the most "DESPAIR" ratings was **"Mary Janes" (10,676 DESPAIR ratings)**. This result is the same whether looking at individual candy items or type of candy items.
+
+## Q5: Starburst DESPAIR
 
 _Q5. How many people rated Starburst as despair?_
 
+```{r}
+candy_ratings_analysis %>% 
+  filter(candy_item == "Starburst" & rating == "DESPAIR") %>% 
+  summarise(count = n()) %>% 
+  pull()
+```
+1,989 people rated Starbust as DESPAIR.
 
-## Q6: 
+## Q6: Most JOYful candy by gender
 
-For the next three questions, count despair as -1, joy as +1, and meh as 0.
+For Qs6-8, count despair as -1, joy as +1, and meh as 0. Here, I assign values to represent the assumption that JOY is a positive rating of popularity, DESPAIR detracts, and MEH is neutral, and assume the average rating value is an indication of overall popularity.
 
-What was the most popular candy bar by this rating system for each gender in the dataset ?
-What was the most popular candy bar in each year?
-What was the most popular candy bar by this rating for people in US, Canada, UK, and all other countries?
+```{r}
+# first make a numeric rating value column to use
+candy_ratings_analysis_num <- candy_ratings_analysis %>%
+  mutate(rating_num = case_when(
+    rating == "JOY" ~ 1,
+    rating == "MEH" ~ 0,
+    rating == "DESPAIR" ~ -1,
+    .default = NA
+  ))
+# 753,368 obs x 10 var == same dim as candy_ratings_analysis
+```
+
+_Q6. What was the most popular candy bar by this rating system for each gender in the dataset?_
+
+Here, I group "I'd rather not say" and NA together as an "unknown" category of gender.
+```{r}
+candy_ratings_analysis_num %>% 
+  ## Toggle filter to see popularity of candy items for each gender (including unknown / NA):
+  #filter(gender == "Female") %>% 
+  #filter(gender == "Male") %>% 
+  filter(gender %in% c("I'd rather not say", NA_character_)) %>% 
+  ## Toggle group_by to see popularity of individual candy items or types of candy item
+  #group_by(candy_item) %>%
+  group_by(candy_item_type) %>%
+  summarise(popularity = mean(rating_num, na.rm = TRUE)) %>% 
+  arrange(desc(popularity))
+```
+Results:
+
+| Gender | Item/type | Most popular | Popularity |
+|----|----|-----|----|
+| Female | Either | (1) Any full-sized candy bar | (1) 0.859 |
+| "" | "" | (2) Reese’s Peanut Butter Cups | (1) 0.754 |
+| Male | Either | (1) Any full-sized candy bar | (1) 0.850 |
+| "" | "" | (2) Reese’s Peanut Butter Cups | (1) 0.781 | 
+| Unknown | Either | (1) Any full-sized candy bar | (1) 0.858 |
+| "" | "" | (2) Reese’s Peanut Butter Cups | (1) 0.812 |
+
+It doesn't matter whether I analyse by individual candy items or types of candy item, the results are the same. Furthermore, the same candy items come top in any gender category: the generic **Any full-sized candy bar** is the most popular, and second place is the specific item: **Reese's Peanut Butter Cups**.
+
+## Q7: Most JOYful candy by year
+
+_Q7. What was the most popular candy bar in each year? Count despair as -1, joy as +1, and meh as 0._
+
+```{r}
+candy_ratings_analysis_num %>% 
+  filter(gender %in% c("I'd rather not say", NA_character_)) %>% 
+  ## Toggle group_by to see results by year
+  #filter(year == 2015) %>% 
+  #filter(year == 2016) %>% 
+  filter(year == 2017) %>% 
+  ## Toggle group_by to see popularity of individual candy items or types of candy item
+  #group_by(candy_item) %>%
+  group_by(candy_item_type) %>%
+  summarise(popularity = mean(rating_num, na.rm = TRUE)) %>%
+  arrange(desc(popularity))
+```
+
+Answers:
+
+* **2015:** (1) **Any full-sized candy bar** (popularity = 0.860); (2) **Reese's Peanut Butter Cups** (popularity = 0.814)
+* **2016:** (1) **Any full-sized candy bar** (popularity = 0.714); (2) **Lindt Truffle (popularity = 0.667)**
+* **2017: (1) Kit Kat (popularity = 0.829)**
+
+(Again, where a generic item has come top, I've noted the first specific item too. And again, the results are the same whether looking at individual candy items or by candy types.)
+
+
+## Q8. Most JOYful candy by country
+
+_Q8. What was the most popular candy bar by this rating for people in US, Canada, UK, and all other countries? Count despair as -1, joy as +1, and meh as 0._
