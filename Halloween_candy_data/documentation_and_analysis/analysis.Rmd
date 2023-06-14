@@ -143,14 +143,16 @@ x2015_subset_converted_all <- x2015_subset %>%
     id == 4798 ~ "42",
     id == 5624 ~ "50",
     .default = age)) %>% 
-  mutate(age = as.integer(age), # Note: this introduces NAs by coercion
+  mutate(age = as.integer(age),  # Note: this introduces NAs by coercion
          year = as.numeric(format(year, "%Y"))) %>% 
   # make empty columns for gender and country (missing in this year's dataset)
   mutate(gender = rep(NA_character_, nrow(x2015_subset)), .after = age) %>% 
   mutate(country = rep(NA_character_, nrow(x2015_subset)), .after = gender) %>% 
-  filter(!id == 1573) # remove 1 duplicate 
+  # reformat id as YYYYxxxx to make unique when years combined
+  mutate(id = (year*10000)+id, .before = year) %>% 
+  filter(!id == 20151573) # remove 1 duplicate 
   # (see "Coerced age data" below for reasoning)
-  
+
 # check NAs in age
 x2015_subset_converted_all %>% 
   filter(is.na(age)) # 273 rows, which is 285 (original NAs) minus 11 recoded minus 1 duplicate
@@ -390,7 +392,7 @@ Decisions on variables to keep/remove:
 ```{r}
 ## step 1: subset to remove unwanted columns
 x2016_subset <- x2016 %>% 
-  select(1:11,13,14,16:20,23:25,28:30,33:37,39:42,44:48,50:68,
+  select(1:5,7:11,13,14,16:20,23:25,28:30,33:37,39:42,44:48,50:68,
          70:78,80:89,91:101,103,106) 
     # not yet including 107:109 for additional ratings and comments
 # 1259 obs x 89 var
@@ -459,13 +461,165 @@ Steps worked, with minimal changes or additional steps compared to 2015. Note 20
 
 ```{r}
 ncol(x2017) # 120 columns
-colnames(x2017)
+colnames_2017 <- as.data.frame(colnames(x2017))
 ```
 
 ```{r}
 glimpse(x2017) # 2460 rows
 # data types: mostly <chr>, some <dbl>, no <lgl>
 ```
+
+#### 2017 cleaning
+
+Follow 2015+2016 cleaning steps, see what needs changing:
+
+* 1. subset to remove unwanted columns
+* 2. clean up included variables --> keep as clean_wide data
+* 3. pivot to long format for tidy data --> keep as clean_long data
+
+#### 1. subset to remove unwanted columns
+
+Decisions to change or remove columns:
+
+| Column # | Current variable name <type> | Action & reasoning |
+| ----- | ----- | ----- |
+| 1 | Internal ID | Inspect - either keep or replace with my ID |
+| 2 | Q1: GOING OUT? | keep, make consistent |
+| 3 | Q2: GENDER | keep, make consistent |
+| 4 | Q3: AGE | keep, make consistent |
+| 5 | Q4: COUNTRY | keep, make consistent |
+| 6 | Q5: STATE, PROVINCE, COUNTY, ETC | remove, not needed |
+| 7-109 | Q6 Candy & other items | Inspect to decide which to keep & remove (as below) |
+| 110-111 | Q7/8 Additional joy & despair | remove for now; if time, include as additional data |
+| 112 | Q9 other comments | remove |
+| 113-120 | Irrelevant Qs | remove |
+
+Decisions on variables to keep/remove:
+
+* Non-candy items to remove:
+  * Other food/drink items, not candy: [22] `Chardonnay`, [38] `Healthy fruit`, [49] `Kale smoothie`, [70] `Minibags of chips`, [86] `Sandwich... Booberry crunch`, [92] `Spotted Dick`, [107] `White bread`, [108] `Whole wheat anything`
+  * Pharmaceuticals: [31] `[Generic Brand Acetaminophen]`, [105] `[Vicodin]`
+  * Other items, not food: [12] `Bonkers (the board game)`, [15] `Broken glow stick`, [21] `Cash...`, [26] `Creepy Religious comics...`, [27] `Dental paraphenalia`, [32] `Glow sticks`, [43] `Hugs...`, [69] `Abstained from M&M'ing`, [81] `Real Housewives...` (DVD)
+
+
+```{r}
+## step 1: subset to remove unwanted columns
+x2017_subset <- x2017 %>% 
+  select(1:5,7:11,13,14,16:20,23:25,28:30,33:37,39:42,44:48,50:68,
+         71:80,82:85,87:91,93:101,103,104,106,109) 
+# not yet including 110:112 for additional ratings and comments
+dim(x2017_subset)
+# 2460 obs x 88 var
+```
+
+#### 2. clean up included variables
+
+First, check which age data values will be coerced to NA by converting to numeric (learning from 2015 cleaning steps):
+
+```{r}
+x2017_subset %>% 
+  rename(age_raw = "Q3: AGE") %>% 
+  select(age_raw) %>% 
+  mutate(age = as.integer(age_raw)) %>% 
+  summarise(across(.cols = c(age, age_raw),
+                   .fns = ~ sum(is.na(.x))))
+```
+
+Age_raw has 84 NAs in already; converting to numeric coerces additional 24 NAs. Inspect:
+
+```{r}
+# Find coerced NAs in age(int)
+x2017_subset %>% 
+  rename(age_raw = "Q3: AGE") %>% 
+  select(`Internal ID`, age_raw) %>% 
+  mutate(age = as.integer(age_raw)) %>% 
+  filter(!is.na(age_raw)) %>% 
+  filter(is.na(age))
+```
+Some age data to recode:
+
+| ID | Age_raw | Action |
+|----|----|----|
+| 90278186 | See question 2 | check raw data: "I'd rather not say" - nothing to recode |
+| 90280448 | sixty-nine | recode to 69 |
+| 90280466 | 46 Halloweens. | Assume means 46, recode |
+| 90292907 | 59 on the day after Halloween | recode to 58 |
+
+```{r}
+x2017_subset %>% 
+  filter(`Internal ID` == 90278186)
+```
+
+
+```{r}
+## step 2: clean up included variables to produce required common df structure: 
+# [1]id [2]year [3]age [4]gender [5]country 
+# [6]goes_trick_or_treating [7]candy_item [8]rating
+x2017_subset_converted <- x2017_subset %>% 
+  # rename variables
+  rename(goes_trick_or_treating = "Q1: GOING OUT?",
+         gender = "Q2: GENDER",
+         age = "Q3: AGE",
+         country = "Q4: COUNTRY") %>%
+  # recode some specific age values before converting to numeric (see above)
+  mutate(age = case_when(
+    `Internal ID` == 90280448 ~ "69",
+    `Internal ID` == 90280466 ~ "46",
+    `Internal ID` == 90292907 ~ "58",
+    .default = age)) %>%
+  # change format of age data
+  mutate(age = as.integer(age)) %>% # Note: this introduces NAs by coercion
+  # add a year column
+  mutate(year = rep(2017, nrow(x2017_subset)), .before = goes_trick_or_treating) %>% 
+  # make an id column to retain unique identifier for each person
+  mutate(id = c(1:nrow(x2017_subset)), .before = year) %>% 
+  mutate(id = (year*10000)+id, .before = year) %>% 
+  # remove original id column
+  select(-c(`Internal ID`))
+# outputs df: 2460 obs. x 89 var (1 more col than subset: id)
+
+dim(x2017_subset_converted)
+head(x2017_subset_converted)
+tail(x2017_subset_converted)
+```
+
+#### 3. pivot to long format for tidy data
+
+```{r}
+## step 3: make long format tidy data
+# with one column for candy items, one column for rating
+# expect 2460 x 89 df to become 
+# (2460 raters * 83 items) x 8 = 204,180 x 8
+x2017_tidy <- x2017_subset_converted %>% 
+  pivot_longer(cols = -c(year, id, age, gender, country, goes_trick_or_treating),
+               names_to = "candy_item",
+               values_to = "rating")
+
+dim(x2017_tidy) # 204,180 x 8
+head(x2017_tidy)
+```
+
+## Join data for all 3 years
+
+Join by binding columns: requires columns to match name-wise but not in same order.
+
+```{r cleaning_join}
+# Dim to expect:
+sum(nrow(x2015_tidy),nrow(x2016_tidy),nrow(x2017_tidy)) # 753,368 rows x 8 cols
+
+# Bind rows
+candy_ratings_allyears <- bind_rows(x2015_tidy, x2016_tidy, x2017_tidy)
+
+dim(candy_ratings_allyears) # 753,368 rows x 8 cols
+```
+
+
+# Inspect data within
+
+* find missing values, NAs
+* clean up country column - need USA, Canada, UK, all other countries
+  * note in 2016 there is age data in the country column!
+* clean up any other data, e.g. candy item; check ratings are consistent
 
 
 
@@ -476,12 +630,3 @@ glimpse(x2017) # 2460 rows
 x2015_tidy %>% 
   distinct(candy_item)
 ```
-
-
-# Inspect data within
-
-* find missing values, NAs
-* clean up country column - need USA, Canada, UK, all other countries
-  * note in 2016 there is age data in the country column!
-* clean up any other data, e.g. character
-

@@ -81,10 +81,10 @@ write_csv(x2015_tidy, "clean_data/2015_clean_long.csv")
 
 ## step 1: subset to remove unwanted columns
 x2016_subset <- x2016 %>% 
-  select(1:11,13,14,16:20,23:25,28:30,33:37,39:42,44:48,50:68,
+  select(1:5,7:11,13,14,16:20,23:25,28:30,33:37,39:42,44:48,50:68,
          70:78,80:89,91:101,103,106) 
 # not yet including 107:109 for additional ratings and comments
-# 1259 obs x 89 var
+# 1259 obs x 88 var
 
 ## step 2: clean up included variables to produce required common df structure: 
 # [1]id [2]year [3]age [4]gender [5]country 
@@ -103,19 +103,74 @@ x2016_subset_converted <- x2016_subset %>%
   mutate(age = as.integer(age), # Note: this introduces NAs by coercion
          year = as.numeric(format(year, "%Y"))) %>% 
   mutate(id = (year*10000)+id, .before = year)
-# outputs df: 1259 obs. x 90 var (1 more col than subset: id)
+# outputs df: 1259 obs. x 89 var (1 more col than subset: id)
 
 ## step 3: make long format tidy data
-# with one column for candy items 7:90, one column for rating
+# with one column for candy items 7:89, one column for rating
 # expect 1259 x 90 df to become 
-# (1259 raters * 84 items) x 8 = 105,756 x 8
+# (1259 raters * 83 items) x 8 = 104,497 x 8
 x2016_tidy <- x2016_subset_converted %>% 
   pivot_longer(cols = -c(year, id, age, gender, country, goes_trick_or_treating),
                names_to = "candy_item",
                values_to = "rating")
 
-dim(x2016_tidy) # 105,756 x 8
+dim(x2016_tidy) # 104,497 x 8
 
 # step 4: write tidied 2016 data to new csv file
 write_csv(x2016_subset_converted, "clean_data/2016_clean_wide.csv")
 write_csv(x2016_tidy, "clean_data/2016_clean_long.csv")
+
+# Tidy 2017 data ---------
+
+## step 1: subset to remove unwanted columns
+x2017_subset <- x2017 %>% 
+  select(1:5,7:11,13,14,16:20,23:25,28:30,33:37,39:42,44:48,50:68,
+         71:80,82:85,87:91,93:101,103,104,106,109) 
+# not yet including 110:112 for additional ratings and comments
+dim(x2017_subset)
+# 2460 obs x 88 var
+
+## step 2: clean up included variables to produce required common df structure: 
+# [1]id [2]year [3]age [4]gender [5]country 
+# [6]goes_trick_or_treating [7]candy_item [8]rating
+x2017_subset_converted <- x2017_subset %>% 
+  # rename variables
+  rename(goes_trick_or_treating = "Q1: GOING OUT?",
+         gender = "Q2: GENDER",
+         age = "Q3: AGE",
+         country = "Q4: COUNTRY") %>%
+  # recode some specific age values before converting to numeric (see above)
+  mutate(age = case_when(
+    `Internal ID` == 90280448 ~ "69",
+    `Internal ID` == 90280466 ~ "46",
+    `Internal ID` == 90292907 ~ "58",
+    .default = age)) %>%
+  # change format of age data
+  mutate(age = as.integer(age)) %>% # Note: this introduces NAs by coercion
+  # add a year column
+  mutate(year = rep(2017, nrow(x2017_subset)), .before = goes_trick_or_treating) %>% 
+  # make an id column to retain unique identifier for each person
+  mutate(id = c(1:nrow(x2017_subset)), .before = year) %>% 
+  mutate(id = (year*10000)+id, .before = year) %>% 
+  # remove original id column
+  select(-c(`Internal ID`))
+# outputs df: 2460 obs. x 89 var (1 more col than subset: id)
+
+## step 3: make long format tidy data
+# with one column for candy items, one column for rating
+# expect 2460 x 89 df to become 
+# (2460 raters * 83 items) x 8 = 204,180 x 8
+x2017_tidy <- x2017_subset_converted %>% 
+  pivot_longer(cols = -c(year, id, age, gender, country, goes_trick_or_treating),
+               names_to = "candy_item",
+               values_to = "rating")
+
+# step 4: write tidied 2017 data to new csv file
+write_csv(x2017_subset_converted, "clean_data/2017_clean_wide.csv")
+write_csv(x2017_tidy, "clean_data/2017_clean_long.csv")
+
+# Join years data -------
+
+# Bind rows
+candy_ratings_allyears <- bind_rows(x2015_tidy, x2016_tidy, x2017_tidy)
+write_csv(candy_ratings_allyears, "clean_data/candy_ratings_allyears.csv")
