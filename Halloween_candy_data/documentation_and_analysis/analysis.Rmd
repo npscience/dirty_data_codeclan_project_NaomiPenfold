@@ -622,11 +622,243 @@ dim(candy_ratings_allyears) # 753,368 rows x 8 cols
 * clean up any other data, e.g. candy item; check ratings are consistent
 
 
-
-## Check consistency of candy items in each year
+## Load in from new csv
 
 ```{r}
-# list candy items in 2015 data
-x2015_tidy %>% 
-  distinct(candy_item)
+candy_ratings <- read_csv("../clean_data/candy_ratings_allyears.csv")
 ```
+## Check values in columns
+
+Currently rater info is duplicated many times (once per each candy item rated). First collapse the data to look at rater info only without ratings.
+```{r}
+candy_raters <- candy_ratings %>% 
+  select(id,year,age,gender,country,goes_trick_or_treating) %>% 
+  unique()
+
+dim(candy_raters) # 9348 raters
+```
+
+### Age
+
+```{r}
+# check min and max ages
+candy_raters %>% 
+  filter(!is.na(age)) %>% 
+  filter(age <= 10) %>%
+  group_by(age) %>% 
+  summarise(count = n())
+```
+
+```{r}
+# check low ages
+
+candy_raters %>% 
+  filter(!is.na(age)) %>% 
+  filter(age <= 5)
+# 0s look real, but babies don't eat candy - so keep but filter out in analyses?
+# Here, the 1 also has 1 in country - recode country as NA
+# 4 and 5s look real, include
+
+candy_raters %>% 
+  filter(!is.na(age)) %>% 
+  filter(age == 6)
+# all 6s look real, include
+```
+These all look real, are very few (relative to size of data), and young people can have opinions, so only recode the country == 1 instance. Make a decision about which ages to include in analyses - can filter out if too young.
+
+```{r}
+# check higher ages
+candy_raters %>% 
+  filter(!is.na(age)) %>%
+  slice_max(age, n = 20)
+# some over 100
+
+candy_raters %>% 
+  filter(!is.na(age)) %>%
+  filter(age > 99)
+# 21 raters with age 100+
+
+```
+
+The oldest person that ever lived, as far as is verified so far, was 122 years old (source: [wikipedia](https://en.wikipedia.org/wiki/List_of_the_verified_oldest_people)), so include a cut-off for age no greather than 125. 
+
+Do not remove whole rows for the entries that do not match, since people may have included an incorrect age in this data as a way to obfuscate, but still have entered real ratings data.
+
+Instead, for age > 125, recode age as NA.
+
+### Gender
+
+```{r}
+candy_raters %>% 
+  group_by(gender) %>% 
+  summarise(count = n())
+```
+That looks clean enough.
+
+### Goes trick or treating
+
+```{r}
+candy_raters %>% 
+  group_by(goes_trick_or_treating) %>% 
+  summarise(count = n())
+```
+That looks clean enough too.
+
+### Candy items
+
+```{r}
+# inspect candy_items (cleaning steps below)
+candy_ratings %>% 
+  group_by(candy_item) %>%
+  summarise(count = n())
+# start: 182 distinct items, aiming for ~85 from knowledge of data
+```
+
+Cleaning script for candy_items:
+```{r}
+# make temp df to check cleaning progress
+candy_ratings_after_item_cleaning <- candy_ratings  %>% 
+  # remove unwanted strings to standardise candy items
+  mutate(candy_item = str_replace_all(candy_item, "^Q6\\ \\|\\ ", ""),
+         candy_item = str_replace_all(candy_item, "^\\[", ""),
+         candy_item = str_replace_all(candy_item, "\\]$", "")) %>% 
+  # recode Mary Janes == anonymouse brown globs
+  mutate(candy_item = case_when(
+        candy_item %in% c("Anonymous brown globs that come in black and orange wrappers", "Anonymous brown globs that come in black and orange wrappers\t(a.k.a. Mary Janes)") ~ "Mary Janes",
+        candy_item == "Bonkers" ~ "Bonkers (the candy)",
+        candy_item == "Box’o’ Raisins" ~ "Box'o'Raisins",
+        candy_item == "JoyJoy (Mit Iodine!)" ~ "JoyJoy (Mit Iodine)",
+        candy_item == "Sweetums (a friend to diabetes)" ~ "Sweetums",
+        candy_item == "Tolberone something or other" ~ "Toblerone",
+        .default = candy_item)) %>% 
+  # make new column with candy item by type (to collapse variants of same candy)
+  mutate(candy_item_type = case_when(
+    str_detect(.$candy_item, "marties") ~ "Smarties",
+    str_detect(.$candy_item, "M\\&M") ~ "M&Ms",
+    str_detect(.$candy_item, "Licorice") ~ "Licorice",
+    str_detect(.$candy_item, "Jolly Rancher") ~ "Jolly Rancher",
+    .default = candy_item
+  ))
+```
+
+```{r}
+candy_ratings %>% 
+  filter(str_detect(.$candy_item, "marties"))
+```
+
+```{r}
+# re-inspect candy_item after cleaning
+candy_ratings_after_item_cleaning %>% 
+  group_by(candy_item) %>%
+  summarise(count = n())
+
+# inspect candy_item_type after cleaning
+candy_ratings_after_item_cleaning %>% 
+  group_by(candy_item_type) %>%
+  summarise(count = n())
+```
+Cleaning steps to make candy items consistent:
+
+Start: 182 distinct items, aiming for ~85 from knowledge of data:
+
+* 2017 data had Q6 | at start of each - remove this string --> 182 items
+* note second half have items in [..], remove these --> 103 items
+* note "Anonymous brown globs that come in black and orange wrappers\t(a.k.a. Mary Janes)" --> indicates "Anonymous brown globs that come in black and orange wrappers" == "Mary Janes" - recode all these --> 101 items
+* recode: Bonkers == Bonkers (the candy) - no way of knowing if Bonkers the board game for 2015 data --> 100 items
+* recode: "Box’o’ Raisins" ~ "Box'o'Raisins"--> 99 items
+* recode: "JoyJoy (Mit Iodine!)" ~ "JoyJoy (Mit Iodine)" --> 98 items
+* recode: "Sweetums (a friend to diabetes)" ~ "Sweetums" --> 97 items
+* recode: "Tolberone something or other" ~ "Toblerone" --> typo, same 97 items
+* to deal with different versions of same type of candy, make new column `candy_item_type` with major type (for variants of Smarties, M&Ms, Licorice, Jolly Rancher) then can decide which column to analyse --> by type, 86 items.
+
+Candy item cleaning complete --> added to cleaning script.
+
+## Rating
+
+```{r}
+candy_ratings_analysis %>% 
+  group_by(rating) %>% 
+  summarise(count = n())
+```
+
+Data looks clean, expected categories.
+
+### Country
+
+### Recoding plan:
+
+General:
+* for age > 125, recode age as NA
+* for country, recode any [0-9] as NA_character_
+
+
+Specifics (if not already recoded by general steps):
+
+| id | variable | current entry | recode to |
+| 20172213 | country | 1 | `NA_character_` -- do this by checking whole country column for numbers |
+
+
+# Analysis
+
+Currently using `candy_ratings_allyears_clean` output from cleaning script
+
+```{r}
+# df to analyse for individual ratings
+candy_ratings_analysis <- read_csv("../clean_data/candy_ratings_allyears_clean.csv")
+
+# subset of df to use for individual raters
+candy_raters_analysis <- candy_ratings_analysis %>% 
+  select(id,year,age,gender,country,goes_trick_or_treating) %>% 
+  unique()
+
+dim(candy_raters_analysis) # 9348 raters
+```
+## Q1: Total number of candy ratings
+
+_Q1. What is the total number of candy ratings given across the three years. (Number of candy ratings, not the number of raters. Don’t count missing values)_
+
+```{r}
+candy_ratings_analysis %>% 
+  filter(!is.na(rating)) %>% 
+  nrow()
+```
+
+Across 2015, 2016 and 2017, a total of **636,754 ratings** were provided.
+
+(Here, I have not filtered out strange ages, since people can enter incorrect info into the age field while also providing real ratings.)
+
+## Q2+3: Average age by trick-or-treating activity
+
+```{r}
+candy_raters_analysis %>% 
+  filter(!is.na(age)) %>%  # 8,902 raters provided age data
+  filter(age > 0 & age <= 125) %>%  # of which, 8,889 were within reasonable age range (1-125 years)
+  group_by(goes_trick_or_treating) %>% 
+  summarise(count = n(),
+            avg_age = mean(age))
+```
+
+_Q2. What was the average age of people who are going out trick or treating?_
+Q2: Of the 929 trick-or-treaters who provided valid age data (age 1-125 years), the average age was 35 years.
+
+_Q3. What was the average age of people who are not going trick or treating?_
+Q3: Of the 7,877 raters who did not go out trick-or-treating, the average age was 39 years.
+
+
+## Q4: 
+
+_Q4. For each of joy, despair and meh, which candy bar received the most of these ratings?_
+
+
+## Q5:
+
+_Q5. How many people rated Starburst as despair?_
+
+
+## Q6: 
+
+For the next three questions, count despair as -1, joy as +1, and meh as 0.
+
+What was the most popular candy bar by this rating system for each gender in the dataset ?
+What was the most popular candy bar in each year?
+What was the most popular candy bar by this rating for people in US, Canada, UK, and all other countries?

@@ -174,3 +174,31 @@ write_csv(x2017_tidy, "clean_data/2017_clean_long.csv")
 # Bind rows
 candy_ratings_allyears <- bind_rows(x2015_tidy, x2016_tidy, x2017_tidy)
 write_csv(candy_ratings_allyears, "clean_data/candy_ratings_allyears.csv")
+
+# Make candy item names consistent -----
+
+candy_ratings_allyears_clean <- candy_ratings_allyears  %>% 
+  # remove unwanted strings to standardise candy items
+  mutate(candy_item = str_replace_all(candy_item, "^Q6\\ \\|\\ ", ""),
+         candy_item = str_replace_all(candy_item, "^\\[", ""),
+         candy_item = str_replace_all(candy_item, "\\]$", "")) %>% 
+  # recode Mary Janes == anonymouse brown globs
+  mutate(candy_item = case_when(
+    candy_item %in% c("Anonymous brown globs that come in black and orange wrappers", "Anonymous brown globs that come in black and orange wrappers\t(a.k.a. Mary Janes)") ~ "Mary Janes",
+    candy_item == "Bonkers" ~ "Bonkers (the candy)",
+    candy_item == "Box’o’ Raisins" ~ "Box'o'Raisins",
+    candy_item == "JoyJoy (Mit Iodine!)" ~ "JoyJoy (Mit Iodine)",
+    candy_item == "Sweetums (a friend to diabetes)" ~ "Sweetums",
+    candy_item == "Tolberone something or other" ~ "Toblerone",
+    .default = candy_item)) %>% 
+  # make new column with candy item by type (to collapse variants of same candy)
+  mutate(candy_item_type = case_when(
+    str_detect(.$candy_item, "marties") ~ "Smarties",
+    str_detect(.$candy_item, "M\\&M") ~ "M&Ms",
+    str_detect(.$candy_item, "Licorice") ~ "Licorice",
+    str_detect(.$candy_item, "Jolly Rancher") ~ "Jolly Rancher",
+    .default = candy_item
+  ))
+
+# Write cleaned data to new csv to load into analysis
+write_csv(candy_ratings_allyears_clean, "clean_data/candy_ratings_allyears_clean.csv")
