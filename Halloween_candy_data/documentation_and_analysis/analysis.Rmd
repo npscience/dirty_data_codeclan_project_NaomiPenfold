@@ -621,14 +621,11 @@ dim(candy_ratings_allyears) # 753,368 rows x 8 cols
   * note in 2016 there is age data in the country column!
 * clean up any other data, e.g. candy item; check ratings are consistent
 
-
 ## Load in from new csv
 
 ```{r}
 candy_ratings <- read_csv("../clean_data/candy_ratings_allyears.csv")
 ```
-## Check values in columns
-
 Currently rater info is duplicated many times (once per each candy item rated). First collapse the data to look at rater info only without ratings.
 ```{r}
 candy_raters <- candy_ratings %>% 
@@ -773,7 +770,7 @@ Start: 182 distinct items, aiming for ~85 from knowledge of data:
 
 Candy item cleaning complete --> added to cleaning script.
 
-## Rating
+### Rating
 
 ```{r}
 candy_ratings_analysis %>% 
@@ -785,7 +782,97 @@ Data looks clean, expected categories.
 
 ### Country
 
+```{r}
+# countries before cleaning
+candy_raters %>% 
+  filter(!is.na(country)) %>% 
+  distinct(country)
+# starts with 168 distinct values
+```
 
+Note: the following cleaning steps can be repeated on the full tidy dataset (candy_ratings) because here the country entries are just repeated many times for each individual rating observation - the cleaning steps will catch all the repeats.
+
+```{r}
+# make vector of all misstypings of USA
+USAs <- candy_raters %>% 
+  mutate(country = str_to_upper(country)) %>%
+  filter(!is.na(country)) %>% 
+  distinct(country) %>% 
+  arrange(desc(country)) %>% 
+  # enter TRUE if country may be USA
+  mutate(USA = str_detect(.$country, "^U") | str_detect(.$country, "^THE") | str_detect(.$country, "STAT|USA|TRUMPISTAN|AAAYYYYYY|MERICA|AMERC|MUR|YORK|JERSEY|PITTSBURGH|CAROLINA|CALIFORNIA|ALASKA")) %>% 
+  filter(USA == TRUE) %>% 
+  # filter out non-USA entries (assume unhinged states is USA)
+  mutate(USA = !(str_detect(.$country, "^NOT") | str_detect(.$country, "N\\.|KIN|UK|UD|UAE|U.K.|OLD|CASCADIA|NETHERLANDS"))) %>%
+  filter(USA == TRUE) %>%
+  select(country) %>% 
+  pull() # 55 values
+
+
+# clean country column
+candy_raters_after_country_cleaning <- candy_raters %>%
+  mutate(country = str_to_upper(country)) %>% 
+  mutate(country = if_else(country == "NOT THE USA OR CANADA", NA_character_, country)) %>% 
+  mutate(country = case_when(country %in% USAs ~ "USA", .default = country)) %>% 
+  mutate(country = case_when(
+    str_detect(.$country, "^UNITED") ~ "UK",
+    str_detect(.$country, "UK|U\\.K\\.|ENGLAND|ENDLAND") ~ "UK",
+    str_detect(.$country, "\\`$") ~ "CANADA",
+    str_detect(.$country, "CAN$") ~ "CANADA",
+    str_detect(.$country, "THE\\ NETHERLANDS") ~ "NETHERLANDS",
+    str_detect(.$country, "^ESPA") ~ "SPAIN",
+    str_detect(.$country, "CASCADIA") ~ "CASCADIA",
+    str_detect(.$country, "^[0-9]+") ~ NA_character_,
+    str_detect(.$country, "\\ ONE|UD|SUBSCRIBE|CANUCK|SOMEWHERE|\\ ABOVE|NEVERLAND|NARNIA") ~ NA_character_,
+    str_detect(.$country, "INSANITY|ANYMORE|GOD|FEAR|EUA|EARTH|DENIAL|CANAE|ATLANTIS|TROPICAL") ~ NA_character_,
+    str_detect(.$country, "^A$") ~ NA_character_,
+    .default = country)) %>% 
+  mutate(country_type = case_when(
+    !(country %in% c("UK","US","CANADA", NA_character_)) ~ "Other",
+    .default = country))
+```
+
+Cleaning steps to make candy items consistent:
+
+Start: 168 distinct items, aiming to recode all USA, UK, Canada, and leave the rest (as other countries).
+
+* Make all uppercase --> 138 rows
+* Deal with USA:
+  * one entry that contains "USA" is "NOT THE USA OR CANADA" so first, recode this to NA_character_ --> 137 rows
+  * then recode contains "USA" or "UNITED STATE" or other entries that I assume mean USA/United States - via a vector to catch all cases --> 83 rows
+* Deal with UK: 
+  * any remaining that contain: "^UNITED", "UK", "U.K."  --> 80 rows
+  * include England: "ENGLAND", "ENDLAND" --> 78 rows
+* Deal with Canada: only two alternatives "CANADA`" and "CAN" --> 76 rows
+* Deal with numbers in the country column (only for 2016 and 2017 data). I assume these are intended as ages. Note: because I cannot combine character and double-type logicals, I have added a cleaning step early in cleaning process for 2016 and 2017 data to update any NA ages with the number in the country column (where present), before age is converted to numeric: ```mutate(age, if_else((str_detect(.$country, "^[0-9]+") & is.na(age)), country, age))```. This updates the age data in the cleaned files, and now I can just remove the numeric entries in the country column --> 65 rows.
+* Recode "THE NETHERLANDS" to "NETHERLANDS" --> 64 rows
+* Recode "ESPAÑA" to "SPAIN" --> 63 rows
+* Recode contains "CASCADIA" to "CASCADIA" --> 62 rows
+* Recode nonsense answers to NA_character_:
+  * "\\ ONE":
+    * THERE ISN'T ONE FOR OLD MEN
+    * THIS ONE
+    * ONE OF THE BEST ONES
+  * several other strange entries
+  --> 41 rows
+* Note some special cases remain:
+  * CASCADIA - is North West America (including both Canada and US states)
+  * EUROPE - could include UK, but not specific enough as a location
+* Make a new column to use with UK/US/Canada/Other where non-UK/US/Canada/NA are encoded as "other countries")
+
+```{r}
+# replace NA ages where numbers are present in country column, before making age a number
+candy_raters %>% 
+  mutate(country = str_to_upper(country)) %>% 
+  filter(str_detect(.$country, "EUA"))
+```
+
+
+```{r}
+# re-inspect countries after cleaning
+candy_raters_after_country_cleaning %>%
+  distinct(country, country_type)
+```
 
 ### Summary from inspecting data:
 
@@ -900,7 +987,7 @@ candy_ratings_analysis %>%
 ```
 1,989 people rated Starbust as DESPAIR.
 
-## Q6: Most JOYful candy by gender
+## Q6: Most popular candy by gender
 
 For Qs6-8, count despair as -1, joy as +1, and meh as 0. Here, I assign values to represent the assumption that JOY is a positive rating of popularity, DESPAIR detracts, and MEH is neutral, and assume the average rating value is an indication of overall popularity.
 
@@ -944,7 +1031,7 @@ Results:
 
 It doesn't matter whether I analyse by individual candy items or types of candy item, the results are the same. Furthermore, the same candy items come top in any gender category: the generic **Any full-sized candy bar** is the most popular, and second place is the specific item: **Reese's Peanut Butter Cups**.
 
-## Q7: Most JOYful candy by year
+## Q7: Most popular candy by year
 
 _Q7. What was the most popular candy bar in each year? Count despair as -1, joy as +1, and meh as 0._
 
@@ -971,6 +1058,6 @@ Answers:
 (Again, where a generic item has come top, I've noted the first specific item too. And again, the results are the same whether looking at individual candy items or by candy types.)
 
 
-## Q8. Most JOYful candy by country
+## Q8. Most popular candy by country
 
 _Q8. What was the most popular candy bar by this rating for people in US, Canada, UK, and all other countries? Count despair as -1, joy as +1, and meh as 0._

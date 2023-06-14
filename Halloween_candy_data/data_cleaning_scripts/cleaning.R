@@ -99,6 +99,8 @@ x2016_subset_converted <- x2016_subset %>%
          age = "How old are you?",
          country = "Which country do you live in?"
   ) %>%
+  # catch ages in country column before age is numerical
+  mutate(age = if_else((str_detect(.$country, "^[0-9]+") & is.na(age)), country, age)) %>% 
   # change format of age and year data
   mutate(age = as.integer(age), # Note: this introduces NAs by coercion
          year = as.numeric(format(year, "%Y"))) %>% 
@@ -145,6 +147,8 @@ x2017_subset_converted <- x2017_subset %>%
     `Internal ID` == 90280466 ~ "46",
     `Internal ID` == 90292907 ~ "58",
     .default = age)) %>%
+  # catch ages in country column before age is numerical
+  mutate(age = if_else((str_detect(.$country, "^[0-9]+") & is.na(age)), country, age)) %>% 
   # change format of age data
   mutate(age = as.integer(age)) %>% # Note: this introduces NAs by coercion
   # add a year column
