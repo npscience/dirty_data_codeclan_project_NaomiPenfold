@@ -1,9 +1,14 @@
-# Script to clean raw data (excel spreadsheets) from 2015, 2016, 2017
+  # ======================================================================
+  #  ----- File Name: cleaning.R
+  #  ----- Description: script to clean raw_data (.xlsx)
+  #  ----- Output: .csv file(s) in clean_data
+  #  ----- Created Date: 15-June-2023
+  #  ----- Created By: Naomi Penfold
+  # ======================================================================
 
 # required libraries
 library(tidyverse)
 library(readxl)
-library(janitor)
 
 # load in raw data files
 x2015 <- read_excel("raw_data/boing-boing-candy-2015.xlsx", sheet = "Form Responses 1")
@@ -74,8 +79,8 @@ x2015_tidy <- x2015_subset_converted %>%
                values_to = "rating")
 
 # step 4: write tidied 2015 data to new csv file
-write_csv(x2015_subset_converted, "clean_data/2015_clean_wide.csv")
-write_csv(x2015_tidy, "clean_data/2015_clean_long.csv")
+# write_csv(x2015_subset_converted, "clean_data/2015_clean_wide.csv")
+# write_csv(x2015_tidy, "clean_data/2015_clean_long.csv")
 
 # Tidy 2016 data ---------
 
@@ -119,8 +124,8 @@ x2016_tidy <- x2016_subset_converted %>%
 dim(x2016_tidy) # 104,497 x 8
 
 # step 4: write tidied 2016 data to new csv file
-write_csv(x2016_subset_converted, "clean_data/2016_clean_wide.csv")
-write_csv(x2016_tidy, "clean_data/2016_clean_long.csv")
+# write_csv(x2016_subset_converted, "clean_data/2016_clean_wide.csv")
+# write_csv(x2016_tidy, "clean_data/2016_clean_long.csv")
 
 # Tidy 2017 data ---------
 
@@ -170,14 +175,15 @@ x2017_tidy <- x2017_subset_converted %>%
                values_to = "rating")
 
 # step 4: write tidied 2017 data to new csv file
-write_csv(x2017_subset_converted, "clean_data/2017_clean_wide.csv")
-write_csv(x2017_tidy, "clean_data/2017_clean_long.csv")
+# write_csv(x2017_subset_converted, "clean_data/2017_clean_wide.csv")
+# write_csv(x2017_tidy, "clean_data/2017_clean_long.csv")
 
 # Join years data -------
 
 # Bind rows
 candy_ratings_allyears <- bind_rows(x2015_tidy, x2016_tidy, x2017_tidy)
-write_csv(candy_ratings_allyears, "clean_data/candy_ratings_allyears.csv")
+write_csv(candy_ratings_allyears, "clean_data/candy_ratings_allyears.csv") 
+# csv used in analysis.rmd to load in pre-cleaned joined data
 
 # Clean candy items and country data ----
 

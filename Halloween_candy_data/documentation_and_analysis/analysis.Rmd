@@ -1,19 +1,21 @@
 ---
 title: "Halloween candy: analysis report"
 output: html_notebook
+date: 2023-06-15
+author: Naomi Penfold
 ---
 
 # Introduction
 
-This report is about candy preferences based on data from surveying people around Halloween (including both those who go trick-or-treating and those who do not). Note: more info on the data is available [here](https://www.scq.ubc.ca/so-much-candy-data-seriously/). 
+This report is about candy preferences based on data from surveying people around Halloween (including both those who go trick-or-treating and those who do not). The data includes information about the rater (such as age, gender and country (as specified by the rater), whether or not they go out trick or treating, their ratings of named items (in terms of JOY, MEH, and DESPAIR), as well as their answers to some additional questions. More information about the data is available [here](https://www.scq.ubc.ca/so-much-candy-data-seriously/). 
 
 This report was prepared as an output for the Codeclan "Dirty Data" project week, and details how the data from 2015, 2016 and 2017 were prepared for analysis as well as the results of the analyses, through the following sections:
 
-* 1: [Planning](#1-Plan-for-how-to-prepare-data-for-analysis) how to prepare data for analysis
-* 2: [Preparing](#2-Preparing-year-data-for-joining) raw data for joining years to create one dataset
-* 3: [Cleaning](#3-Cleaning-data-values-in-joined-data) joined data ready for analysis
-* 4: [Analysis](#4-Analysis)
-* 5: [Reflections](#5-Reflections)
+* 1: [Planning](#plan) how to prepare data for analysis
+* 2: [Preparing](#prepare) raw data for joining years to create one dataset
+* 3: [Cleaning](#clean) joined data ready for analysis
+* 4: [Analysis](#analyse)
+* 5: [Reflections](#reflect)
 
 ## About the code in this notebook
 
@@ -30,18 +32,17 @@ Running the code in the **Analysis** section creates:
 In addition, code in the **Reflections** section produces a vector called `candy_items`, which lists all the candy items included in the cleaned data (note: I have excluded multiple items rated in the survey, where I have deemed them not to be "Candy"). This is an artefact that could be used to improve the `cleaning.R` script (not done within this project).
 
 
-```{r}
+```{r, message = FALSE}
 library(tidyverse)
 library(readxl)
-library(janitor)
 library(here)
 ```
 
-# 1: Plan for how to prepare data for analysis
+# 1: Plan for how to prepare data for analysis {#plan}
 
 ## Load raw data
 
-```{r}
+```{r, message = FALSE}
 excel_sheets(here("raw_data/boing-boing-candy-2015.xlsx"))
 excel_sheets(here("raw_data/boing-boing-candy-2016.xlsx"))
 excel_sheets(here("raw_data/boing-boing-candy-2017.xlsx"))
@@ -50,12 +51,11 @@ excel_sheets(here("raw_data/boing-boing-candy-2017.xlsx"))
 Each excel has only one sheet, each excel file is a dataset for one year. 
 
 Read these in:
-```{r}
+```{r, message = FALSE}
 x2015 <- read_excel(here("raw_data/boing-boing-candy-2015.xlsx"), sheet = "Form Responses 1")
 x2016 <- read_excel(here("raw_data/boing-boing-candy-2016.xlsx"), sheet = "Form Responses 1")
 x2017 <- read_excel(here("raw_data/boing-boing-candy-2017.xlsx"), sheet = "responses (2) (1).csv")
 ```
-
 
 ## Review analysis questions
 
@@ -92,23 +92,11 @@ Aim: I want to make one combined df. that looks like the following, whereby 1 ra
 
 Once joined, I can deal with cleaning data values, such as inconsistent candy bar names and countries.
 
-# 2: Preparing year data for joining
+# 2: Preparing year data for joining {#prepare}
 
 Here, I have inspected the variables within each year's dataset, and decided what to remove, what to keep and how to keep it, to achieve the above aim of combined tidy data.
 
 ## 2015 data
-
-```{r}
-ncol(x2015) # 124 columns
-colnames(x2015)
-```
-
-```{r}
-glimpse(x2015) # 5630 rows
-# data types: mostly <chr>, some <lgl> at end, 1 <dttm> at beginning
-```
-
-### 2015 cleaning
 
 Variables to keep/convert:
 
@@ -138,14 +126,11 @@ Decisions on variables to keep/remove:
 x2015_subset <- x2015 %>% 
   select(1:17,19:22,24,25,29:32,35:37,39:40,42:44,46:55,57:81,83:89,91,92,96,114,115,98,99)
 
-head(x2015_subset) # 84 variables
-
-# rename variables about the rater & rating year
-# and reposition to end with: 
-# [1]year [2]age [3]gender [4]country [5]goes_trick_or_treating
+# tidy column names and some data
 x2015_subset_converted_all <- x2015_subset %>% 
   # make an id column to retain unique identifier for each person
   mutate(id = c(1:5630), .before = "Timestamp") %>%
+  # rename variables about the rater & rating year
   rename(age = "How old are you?",
           goes_trick_or_treating = "Are you going actually going trick or treating yourself?",
           year = "Timestamp",
@@ -172,44 +157,27 @@ x2015_subset_converted_all <- x2015_subset %>%
   mutate(country = rep(NA_character_, nrow(x2015_subset)), .after = gender) %>% 
   # reformat id as YYYYxxxx to make unique when years combined
   mutate(id = (year*10000)+id, .before = year) %>% 
-  filter(!id == 20151573) # remove 1 duplicate 
-  # (see "Coerced age data" below for reasoning)
+  filter(!id == 20151573) # remove 1 duplicate (found via 'coerced age data')
 
-# check NAs in age
-x2015_subset_converted_all %>% 
-  filter(is.na(age)) # 273 rows, which is 285 (original NAs) minus 11 recoded minus 1 duplicate
-
-# If processing additional_joy/despair ratings, do this here using df: `..._all`
-# For now, proceed without these additional ratings, remove these columns:
-
+# Proceed without these additional joy/despair ratings:
 x2015_subset_converted_sub <- x2015_subset_converted_all %>% 
   select(-c(additional_joy,additional_despair))
-
-dim(x2015_subset_converted_sub) # 5630 observations x 85 variables
-head(x2015_subset_converted_sub) # cols 1:6 are rater_info, 7-85 are candy items, 85-86
 
 # 'tidy' subsetted data to long format with
 # one column for candy items [7-85], one column for rating
 # expect 5629 x 85 to become 
-# (5629 raters * 79 items) x 8 = 444,691 x 8
+#   (5629 raters * 79 items) x 8 = 444,691 x 8
 x2015_tidy <- x2015_subset_converted_sub %>% 
   pivot_longer(cols = -c(year, id, age, gender, country, goes_trick_or_treating),
                names_to = "candy_item",
-               values_to = "rating"
-               )
-dim(x2015_tidy) # 444,691 obs x 8 var - as expected
-head(x2015_tidy, n = 10)
-tail(x2015_tidy, n = 10)
+               values_to = "rating")
 ```
-Note: this tidy data contains ratings from 5,629 individual raters (with ids 1-5630; excluding 1573, duplicate entry) about 79 different candy items.
 
-Currently, this does not include additional JOY and DESPAIR ratings given as free text entries to 2 questions in the raw data.
-
-The above code that is needed to generate the tidy version of 2015 data has been included in `cleaning.R` script; the code to check results has not been included, and neither has code to include the additional ratings columns.
+The above code that is needed to generate the tidy version of 2015 data has been included in `cleaning.R` script; note I have removed the additional JOY and DESPAIR ratings contained within the free text answers, although these could be included in a later iteration to add more data.
 
 #### Coerced age data
 
-Warning: converting age data from <chr> to numeric coerces some values into NAs. Inspect raw data to understand what I might be missing by doing this.
+Converting age data from <chr> to numeric coerces some values into NAs, so I have inspected raw data to understand what I might be missing by doing this:
 
 ```{r}
 # this code relies on output generated in earlier chunks: `x2015_subset_converted_sub` and `x2015`
@@ -222,15 +190,42 @@ x2015_id_na_age <- x2015_subset_converted_sub %>%
   pull()
    
 x2015_id_age_raw <- x2015 %>% 
-  # add same ids to raw data
+  # add ids to raw data
   mutate(id = c(1:5630), .before = Timestamp) %>% 
   rename(age_raw = "How old are you?") %>% 
-  # filter for id's with NA in converted age
+  # filter for ids with NA in converted age
   filter(id %in% x2015_id_na_age) %>% 
   select(id, age_raw) %>% # several NAs, filter out 
-  filter(!is.na(age_raw)) # 85 answers
+  filter(!is.na(age_raw)) # 85 rows
+```
 
-# test how to recode these - reuse this code in cleaning script (as above)
+Inspecting these 85 answers, there are a few I will recode to include in dataset, the rest are not meaningful enough and can be coerced to NAs. 
+
+To recode:
+
+| id | age_raw | recode as age: |
+|-----|-----|-----|
+| 378 | "45, but the 8-year-old Huntress..." | 45 |
+| 792 | "37 (I'm taking a child)" | 37 |
+| 1210 | "Good Lord!  I'm 43!" | 43 |
+| 1571 | "46:" | 46 |
+| 1573 | "46:" | 46 |
+| 1629 | "40. Deal with it." | 40 |
+| 2207 | "37," | 37 |
+| 2934 | "50 (despair)" | 50 |
+| 3384 | "27^" | 27 |
+| 3626 | "50, taking a 13 year old." | 50 |
+| 4798 | "42 - I'm taking my kid" | 42 |
+| 5624 | "50t" | 50 |
+
+Notes:
+
+* 1571 and 1573 are exactly the same - suspicious there may be duplicate entries. Checked full data for these IDs (see below) and decided to remove 1573 from the dataset, since it is a duplicate entry.
+* Recode age values for the IDs as above (excluding 1573, to be removed) =  expect to end up with (285 - 11) = 274 NAs in final data.
+* Cannot recode simply by removing punctuation or characters (e.g. "27^", "50t") because several use "+" to indicate a non-specific age (e.g. "30+").
+
+```{r}
+# recode these ages - reuse this code in cleaning script (as above)
 x2015_id_age_raw %>% 
   mutate(age = case_when(
     id == 378 ~ "45",
@@ -251,44 +246,6 @@ x2015_id_age_raw %>%
   summarise(count = n()) # recoded 11 values, 74 NAs remaining
 ```
 
-Inspecting these 85 answers, there are a few I will recode to include in dataset, the rest are not meaningful enough and can be coerced to NAs. 
-
-To recode to include:
-
-| id | age_raw | recode as age: |
-|-----|-----|-----|
-| 378 | "45, but the 8-year-old Huntress..." | 45 |
-| 792 | "37 (I'm taking a child)" | 37 |
-| 1210 | "Good Lord!  I'm 43!" | 43 |
-| 1571 | "46:" | 46 |
-| 1573 | "46:" | 46 |
-| 1629 | "40. Deal with it." | 40 |
-| 2207 | "37," | 37 |
-| 2934 | "50 (despair)" | 50 |
-| 3384 | "27^" | 27 |
-| 3626 | "50, taking a 13 year old." | 50 |
-| 4798 | "42 - I'm taking my kid" | 42 |
-| 5624 | "50t" | 50 |
-
-Notes:
-
-* Do not just remove punctuation, there are some entries that are "30+" or "50+" which cannot be recoded as an age.
-* 1571 and 1573 are exactly the same - suspicious there may be duplicate entries. Checked full data for these IDs (see below) and decided to remove 1573 from the dataset, since it is a duplicate entry.
-* Recode age values for the IDs as above (excluding 1573, to be removed) =  expect to end up with (285 - 11) = 274 NAs in final data.
-
-```{r}
-# check if 1571 and 1573 are duplicate entries
-
-x2015_subset_converted_sub %>% 
-  filter(id %in% c(1571,1573)) # exactly the same entries
-
-x2015 %>% 
-  mutate(id = c(1:5630), .before = Timestamp) %>% 
-  filter(id %in% c(1571,1573))
-# Timestamp: entered <1 minute apart
-# all answers, including free text fields, are exactly the same
-# consider these duplicates and remove 1573
-```
 
 #### Additional data not yet in columns
 
@@ -318,29 +275,9 @@ x2015_additional_despair <- x2015_additional_ratings %>%
 * Not yet cleaned within columns: countries, candy_items, in particular for 2015. Waiting to have full df with all three years, to do this in one go.
 * Not yet added in additional candy_items with JOY/DESPAIR ratings, stored in `x2015_additional_ratings` (subsetted into `x2015_additional_joy` and `x2015_additional_despair`).
 * Any analyses by age or gender will filter out 2015 data because all _NA_ here.
-* Written 2 forms of csv - one wide format for looking at average ages, 1 row = 1 person, one long format for looking at counts of ratings
 * Note: no MEH ratings in 2015 data.
 
-```{r}
-# read in csv written from cleaning script
-tidy_2015 <- read_csv(here("clean_data/2015_clean_long.csv"))
-head(tidy_2015)
-```
-
-
 ## 2016 data
-
-```{r}
-ncol(x2016) # 123 columns
-colnames_2016 <- as.data.frame(colnames(x2016))
-```
-
-```{r}
-glimpse(x2016) # 1259 rows
-# data types: mostly <chr>, 1 <lgl> at end, 1 <dttm> at beginning
-```
-
-### 2016 cleaning
 
 Follow 2015 cleaning steps, see what needs changing:
 
@@ -348,7 +285,7 @@ Follow 2015 cleaning steps, see what needs changing:
 * 2. clean up included variables --> keep as clean_wide data
 * 3. pivot to long format for tidy data --> keep as clean_long data
 
-#### 1. subset to remove unwanted columns
+### 1. subset to remove unwanted columns
 
 Decisions to change or remove columns:
 
@@ -388,7 +325,7 @@ x2016_subset <- x2016 %>%
 ```
 
 
-#### 2. clean up included variables
+### 2. clean up included variables
 
 First, check which age data values will be coerced to NA by converting to numeric (learning from 2015 cleaning steps):
 
@@ -423,13 +360,7 @@ x2016_subset_converted <- x2016_subset %>%
          year = as.numeric(format(year, "%Y")))
 ```
 
-```{r}
-# inspect converted df
-dim(x2016_subset_converted) # 1259 obs. x 90 var. 1 more col than subset: + id
-head(x2016_subset_converted)
-```
-
-#### 3. pivot to long format for tidy data
+### 3. pivot to long format for tidy data
 
 ```{r 2016_step3}
 # this code chunk is in cleaning.R script
@@ -442,35 +373,21 @@ x2016_tidy <- x2016_subset_converted %>%
   pivot_longer(cols = -c(year, id, age, gender, country, goes_trick_or_treating),
                names_to = "candy_item",
                values_to = "rating")
-
-dim(x2016_tidy) # 105,756 x 8
 ```
 
-#### Summary
+### Summary
 
-Steps worked, with minimal changes or additional steps compared to 2015. Note 2016 data includes country and gender, not yet inspected for cleaning (to do once all years combined).
+These steps worked with minimal changes compared to 2015. Note 2016 data includes country and gender data, not yet inspected for cleaning (to do once all years combined).
 
 ## 2017 data
 
-```{r}
-ncol(x2017) # 120 columns
-colnames_2017 <- as.data.frame(colnames(x2017))
-```
-
-```{r}
-glimpse(x2017) # 2460 rows
-# data types: mostly <chr>, some <dbl>, no <lgl>
-```
-
-### 2017 cleaning
-
-Follow 2015+2016 cleaning steps, see what needs changing:
+Follow 2015+2016 cleaning steps and see what needs changing:
 
 * 1. subset to remove unwanted columns
 * 2. clean up included variables --> keep as clean_wide data
 * 3. pivot to long format for tidy data --> keep as clean_long data
 
-#### 1. subset to remove unwanted columns
+### 1. subset to remove unwanted columns
 
 Decisions to change or remove columns:
 
@@ -503,8 +420,7 @@ x2017_subset <- x2017 %>%
   select(1:5,7:11,13,14,16:20,23:25,28:30,33:37,39:42,44:48,50:68,
          71:80,82:85,87:91,93:101,103,104,106,109) 
 # not yet including 110:112 for additional ratings and comments
-dim(x2017_subset)
-# 2460 obs x 88 var
+# outputs 2460 obs x 88 var
 ```
 
 #### 2. clean up included variables
@@ -531,6 +447,7 @@ x2017_subset %>%
   filter(!is.na(age_raw)) %>% 
   filter(is.na(age))
 ```
+
 Some age data to recode:
 
 | ID | Age_raw | Action |
@@ -568,10 +485,6 @@ x2017_subset_converted <- x2017_subset %>%
   # remove original id column
   select(-c(`Internal ID`))
 # outputs df: 2460 obs. x 89 var (1 more col than subset: id)
-
-dim(x2017_subset_converted)
-head(x2017_subset_converted)
-tail(x2017_subset_converted)
 ```
 
 #### 3. pivot to long format for tidy data
@@ -587,9 +500,6 @@ x2017_tidy <- x2017_subset_converted %>%
   pivot_longer(cols = -c(year, id, age, gender, country, goes_trick_or_treating),
                names_to = "candy_item",
                values_to = "rating")
-
-dim(x2017_tidy) # 204,180 x 8
-head(x2017_tidy)
 ```
 
 ## Join data for all 3 years
@@ -598,16 +508,15 @@ Join by binding columns: requires columns to match name-wise but not in same ord
 
 ```{r cleaning_join}
 # Dim to expect:
-sum(nrow(x2015_tidy),nrow(x2016_tidy),nrow(x2017_tidy)) # 753,368 rows x 8 cols
+# sum(nrow(x2015_tidy),nrow(x2016_tidy),nrow(x2017_tidy)) # 753,368 rows x 8 cols
 
 # Bind rows -- this line is in cleaning.R script
 candy_ratings_allyears <- bind_rows(x2015_tidy, x2016_tidy, x2017_tidy)
-
-dim(candy_ratings_allyears) # 753,368 rows x 8 cols
+# Dim (actual): 753,368 rows x 8 cols
 ```
 
 
-# 3: Cleaning data values in joined data
+# 3: Cleaning data values in joined data {#clean}
 
 * find missing values, NAs
 * clean up country column - need USA, Canada, UK, all other countries
@@ -618,7 +527,7 @@ dim(candy_ratings_allyears) # 753,368 rows x 8 cols
 
 Joined data created in cleaning.R script
 
-```{r}
+```{r, message = FALSE}
 candy_ratings <- read_csv("../clean_data/candy_ratings_allyears.csv")
 ```
 
@@ -629,51 +538,53 @@ candy_raters <- candy_ratings %>%
   select(id,year,age,gender,country,goes_trick_or_treating) %>% 
   unique()
 
-dim(candy_raters) # 9348 raters
+# dim(candy_raters) # 9348 raters
 ```
 
-## Age
+## Standard NAs
+
+Note: all these NAs are not out of the ordinary, they represent unanswered survey questions and/or invalid data (coerced to NA in cleaning script).
 
 ```{r}
-# check min and max ages
+# check for standard NAs in raters information
 candy_raters %>% 
-  filter(!is.na(age)) %>% 
-  filter(age <= 10) %>%
-  group_by(age) %>% 
-  summarise(count = n())
+  summarise(across(.cols = everything(),
+                   .fns = ~ sum(is.na(.x))))
 ```
+
+Note there is no gender or country information in raw data for 2015, so instead there are lots of NAs added to these columns from all the 2015 raters.
+
+```{r}
+# check for standard NAs in ratings information
+candy_ratings %>% 
+  select(candy_item, rating) %>% 
+  summarise(across(.cols = everything(),
+                   .fns = ~ sum(is.na(.x))))
+```
+
+NAs in ratings are real: not every candy item was rated by every individual, encoded as NA here.
+
+## Age
 
 ```{r}
 # check low ages
 candy_raters %>% 
   filter(!is.na(age)) %>% 
-  filter(age <= 5)
-# 0s look real, but babies don't eat candy - so keep but filter out in analyses?
-# Here, the 1 also has 1 in country - recode country as NA
-# 4 and 5s look real, include
-
-candy_raters %>% 
-  filter(!is.na(age)) %>% 
-  filter(age == 6)
-# all 6s look real, include
+  filter(age <= 6) %>% 
+  arrange(age)
 ```
-These all look real, are very few (relative to size of data), and young people can have opinions, so only recode the country == 1 instance. Make a decision about which ages to include in analyses - can filter out if too young.
+These all could be real (e.g. if parent recording a rating for young children) and are very few (relative to size of data). Therefore, filter for age 1+ when analysing by age, and recode country == 1 to NA.
 
 ```{r}
 # check higher ages
 candy_raters %>% 
   filter(!is.na(age)) %>%
-  slice_max(age, n = 20)
-# some over 100
-
-candy_raters %>% 
-  filter(!is.na(age)) %>%
-  filter(age > 99)
+  filter(age > 99) %>% 
+  arrange(age)
 # 21 raters with age 100+
-
 ```
 
-The oldest person that ever lived, as far as is verified so far, was 122 years old (source: [wikipedia](https://en.wikipedia.org/wiki/List_of_the_verified_oldest_people)), so include a cut-off for age no greather than 125. 
+The oldest person that ever lived, as far as is verified so far, was 122 years old (source: [wikipedia](https://en.wikipedia.org/wiki/List_of_the_verified_oldest_people)), so include a cut-off for age no greater than 125. 
 
 Do not remove whole rows for the entries that do not match, since people may have included an incorrect age in this data as a way to obfuscate, but still have entered real ratings data.
 
@@ -758,7 +669,7 @@ candy_ratings_after_item_cleaning %>%
   group_by(candy_item) %>%
   summarise(count = n())
 
-# inspect candy_item_type after cleaning
+# inspect candy_item_type produced in cleaning
 candy_ratings_after_item_cleaning %>% 
   group_by(candy_item_type) %>%
   summarise(count = n())
@@ -772,7 +683,7 @@ candy_ratings %>%
   summarise(count = n())
 ```
 
-Data looks clean, expected categories.
+Data looks clean, contains expected categories, and I expected MEH less than others because no MEH ratings in 2015 data.
 
 ## Country
 
@@ -863,8 +774,9 @@ candy_raters_after_country_cleaning %>%
   distinct(country, country_type)
 ```
 
+# 4: Analysis {#analyse}
 
-# 4: Analysis
+Note: all subsequent code is independent from the objects stored in previous code in this notebook. Therefore, the analysis can be run without re-running the cleaning steps above. However, the analysis requires a csv file written at the end of the `data_cleaning_scripts/cleaning.R` script, so ensure you run this first.
 
 ```{r}
 # read in file written after cleaning as df to analyse for individual ratings
@@ -874,8 +786,6 @@ candy_ratings_analysis <- read_csv("../clean_data/candy_ratings_allyears_clean.c
 candy_raters_analysis <- candy_ratings_analysis %>% 
   select(id,year,age,gender,country,goes_trick_or_treating) %>% 
   unique()
-
-dim(candy_raters_analysis) # 9348 raters
 ```
 
 ## Q1: Total number of candy ratings
@@ -904,10 +814,10 @@ candy_raters_analysis %>%
 ```
 
 _Q2. What was the average age of people who are going out trick or treating?_
-Q2: Of the 931 trick-or-treaters who provided valid age data (age 1-125 years), the average age was 35 years.
+Q2: Of the 931 trick-or-treaters who provided valid age data (age 1-125 years), the average age was **35 years**.
 
 _Q3. What was the average age of people who are not going trick or treating?_
-Q3: Of the 7,886 raters who did not go out trick-or-treating, the average age was 39 years.
+Q3: Of the 7,886 raters who did _not_ go out trick-or-treating, the average age was **39 years**.
 
 
 ## Q4: Candy items most-rated for each rating
@@ -951,7 +861,7 @@ candy_ratings_analysis %>%
   arrange(desc(count)) %>% 
   head(5)
 ```
-Here, we find that **Bonkers** is the specific item with the most MEH ratings, the generic "Any full-sized candy bar" and "Hard Candy" entries.
+Here, we find that **Bonkers** is the specific item with the most MEH ratings, after the generic "Any full-sized candy bar" and "Hard Candy" entries.
 
 
 ```{r}
@@ -966,7 +876,7 @@ candy_ratings_analysis %>%
   arrange(desc(count))
 ```
 
-When looking by candy_item_type, M&Ms receive a lot of ratings when combined across all the different types of M&M, and become most-rated in both JOY and MEH.
+When looking by candy_item_type, M&Ms receive a lot of ratings (when combined across all the different types of M&M), and become most-rated for both JOY and MEH.
 
 ## Q5: Starburst DESPAIR
 
@@ -983,7 +893,7 @@ candy_ratings_analysis %>%
 
 ## Q6: Most popular candy by gender
 
-For Qs6-8, count despair as -1, joy as +1, and meh as 0. Here, I assume the average rating value is an indication of overall popularity.
+For Qs6-8, count despair as -1, joy as +1, and meh as 0. Here, I calculate the mean rating value as a proxy for popularity.
 
 ```{r}
 # first make a numeric rating value column to use
@@ -1043,6 +953,7 @@ candy_ratings_analysis_num %>%
   slice(1) %>% 
   ungroup()
 ```
+
 The generic "Any full-sized candy bar" is most popular in every year. 
 
 ```{r}
@@ -1065,7 +976,6 @@ When I exclude this generic option, Reese's Peanut Butter cups were the most pop
 ## Q8. Most popular candy by country
 
 _Q8. What was the most popular candy bar by this rating for people in US, Canada, UK, and all other countries? Count despair as -1, joy as +1, and meh as 0._
-
 
 ```{r}
 candy_ratings_analysis_num %>% 
@@ -1095,13 +1005,13 @@ candy_ratings_analysis_num %>%
 
 Here, we find that Reese's Peanut Butter Cups and Kit Kats are the most popular in the USA and Canada, respectively; while Rolos and Lindt Truffles are popular elsewhere in the world.
 
-# 5: Reflections
+# 5: Reflections and potential improvements {#reflect}
 
 Once I had prepared 2015 data, it was simple to adapt the same code to prepare 2016 and 2017 data, despite some differences in how these data were encoded (e.g. column names).
 
-I could improve the initial data preparation steps = this currently involves subsetting the raw data using column number, which is the least reproducible and readable way. 
+This notebook could be self-contained if I run the cleaning script from within the notebook as the first step in the first code chunk in the `Analysis` section (i.e. in clude source(cleaning.R). I could not get this to work yet.
 
-Now that I know the list of candy items that I decide to include in the final dataset (see vector created below), I could instead use this knowledge to filter for only the items in this list, which could then be easily updated (e.g. adding an item to the vector) and/or applied to other years' dataframes. 
+I could also improve the initial data preparation steps. This currently involves subsetting the raw data using column number, which is the least reproducible and readable way. Now that I know the list of candy items that I decide to include in the final dataset (see vector created below), I could instead use this knowledge to filter for only the items in this list, which could then be easily updated (e.g. adding an item to the vector) and/or applied to other years' dataframes. 
 
 ```{r}
 # create vector of candy item names to include in final data, based on those included currently
@@ -1123,3 +1033,5 @@ The new data preparation flow could be:
 Another way I could improve this would be to use assertive programming to verify that the data looks as it should before proceeding, e.g. that the data types are as expected, that the age data is within a reasonable range (and if not, prompt the user to inspect this first).
 
 A third way to improve would be to include the additional JOY and DESPAIR ratings given in the free text box answers near the end of the survey in each year.
+
+Finally, I could explicitly check for duplicates in the data - e.g. same rater info and ratings, maybe slightly different timestamp.
