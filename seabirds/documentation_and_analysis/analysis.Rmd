@@ -1,51 +1,34 @@
 ---
-title: "Data exploration"
+title: "Analysis of seabird sightings"
 output: html_notebook
 ---
 
-*This is a playground.* In this notebook, I explore the data, plan cleaning steps, experiment with cleaning and analysis steps, and log decisions and assumptions made throughout.
+# Introduction
 
-You do not need to read or run this notebook, the cleaning.R and 2_analysis.Rmd are complete with the final elements.
+This notebook details the [cleaning](#clean) and [analysis](#analyse) of seabirds data.
 
-**TODO**: update .Rmd with decisions and assumptions.
-**TODO**: update README file to explain
+The seabirds data is about sightings of seabirds from ships. The raw data about the ships includes information about the location of the sighting, the weather conditions, and who sighted the birds. The raw data about the seabirds includes information about the number of seabirds counted in each sighting, as well as other details about the seabirds that were sighted. From this data, we can find out which seabirds were sighted the most, in certain locations, and look up sightings of specific seabirds.
 
+The code within `Prepare and clean data` section is repeated in `cleaning.R` so you only need to run that cleaning script to generate the cleaned data from the raw data. This code is included in this notebook to complement the documentation about my planning and decision making. To run the "bird names cleaning" and analysis code in this notebook, you must first run the `cleaning.R` script to write the .csv files that these require.
 
-```{r}
+# 1: Prepare and clean data {#clean}
+
+```{r, message = FALSE}
 library(tidyverse)
 library(readxl)
-library(janitor)
-library(assertr)
-```
-# Load in raw data
-
-```{r}
-sheet_names <- excel_sheets(here::here("raw_data/seabirds.xls"))
+library(here)
 ```
 
-```{r}
-ship_data <- read_excel(here::here("raw_data/seabirds.xls"), sheet = "Ship data by record ID")
-bird_data <- read_excel(here::here("raw_data/seabirds.xls"), sheet = "Bird data by record ID")
-ship_codes <- read_excel(here::here("raw_data/seabirds.xls"), sheet = "Ship data codes")
-bird_codes <- read_excel(here::here("raw_data/seabirds.xls"), sheet = "Bird data codes")
+
+```{r, message = FALSE}
+ship_data <- read_excel(here("raw_data/seabirds.xls"), sheet = "Ship data by record ID")
+bird_data <- read_excel(here("raw_data/seabirds.xls"), sheet = "Bird data by record ID")
+ship_codes <- read_excel(here("raw_data/seabirds.xls"), sheet = "Ship data codes")
+bird_codes <- read_excel(here("raw_data/seabirds.xls"), sheet = "Bird data codes")
 ```
 
-Note the error this flagged - it may mean that there is a column that contains mixed type data, or that data has spilled across columns. Tbc when I inspect the subset of data I need for this analysis.
 
-
-# Analysis planning
-
-## Requested insights
-
-* Which bird had the most individual sightings?
-* Which bird had the highest total count?
-* Which bird had the highest total count above a latitude of -30?
-* How many different types of birds were only ever seen in groups of 1?
-* How many penguins were seen? (Hint: there are many types of penguin)
-
-For each question where we ask for bird names, give the bird’s common name, scientific name and species abbreviation.
-
-## Gather required data
+## 1: Gather required data for analyses
 
 1. Join ship_data and bird_data by `RECORD ID` - this is the common key that links the ship data (date of sightings, from which ship, at which lat/long position, who sighted, weather conditions, etc) with the bird data (which bird sighted, how many counted in the sighting, etc). I have decided to left join, to keep all the bird data, and only match ship data where there is a match (I don't need any ship records that don't match up to recorded bird sightings).
 
@@ -53,7 +36,9 @@ For each question where we ask for bird names, give the bird’s common name, sc
 
 | record_id | ship_lat | common_name | sci_name | species_abbrv | count |
 
-```{r}
+```{r cleaning_1}
+# this code is included in cleaning.R script
+
 bird_counts <-  left_join(bird_data, ship_data, by = "RECORD ID") # expect all 49,019 bird observations
 
 bird_counts <- bird_counts %>% 
@@ -63,47 +48,26 @@ bird_counts <- bird_counts %>%
    common_name = species_common_name_taxon_age_sex_plumage_phase,
    sci_name = species_scientific_name_taxon_age_sex_plumage_phase
   )
-
-glimpse(bird_counts)
-
-# write subset of raw data to new csv file to continue with in next cleaning script
-# write_csv(bird_counts, "data/bird_counts_raw.csv")
 ```
-* Note that text columns are character type, numeric columns are <dbl>. This means any NAs or missing values in numeric columns are standard NAs, blanks or numbers - i.e. no entries written in as 'none' for example.
 
+Note that text columns are character type, numeric columns are <dbl>. This means any NAs or missing values in numeric columns are standard NAs, blanks or numbers - i.e. no entries written in as 'none' for example.
 
-## Cleaning tasks: plan
+## 2: Explore and make plan for cleaning data
 
-### 1 explore missing values and strange data
-
-[x] Find standard NAs for all
-[x] check for non-standard NAs in character data: From codes data, expect:
-    [x] blanks for missing latitude values 
-    [x] [NO BIRDS RECORDED] in common_name (and _NA_ in sci_name and species_abbreviation) for observations with no sightings
-[x] check numeric data:
-  [x] check min and max make sense for latitudes and counts
-  [x] check record ids, to ensure we have kept all sightings after the join: expect 1083001 - 85030012 for both birds and ships data
-
-### 2 Initial plan for cleaning data
-
-From manual inspection, might need to clean the following:
+From manual inspection, I might need to clean the following:
 
 * Common name: 
   * remove 'sensu lato' =  latin for "in the broad sense"
   * remove age codes: AD, JUV, IMM, 
   * remove plummage codes: PL# 
   * rename ...unidentified as unidentified - or check if better to keep as is and make new col for unidentified, to exclude by
-  * Note some bird1 / bird 2 -- could rename as unidentified since not sure which one
-  * Do distinct() to see if any more need recording
+  * Note some bird1 / bird 2 - decided not to worry about these for this project, leave in
   * NO BIRDS RECORDED - note as an NA for bird count
   
 * Scientific name:
-  * Have age and plummage codes in this data too (as well as in species abbrev) - does it mean something? Check domain expertise
+  * Have age and plummage codes in this data too (as well as in species abbrev) - decided to remove.
   * Some NAs
-  * Several with "/" - unidentified / not sure which. Decide whether to keep.
-
-  
-## Cleaning tasks: exploration
+  * Several with "/" - decided not to worry about these for this project, leave in.
 
 ### Find standard NAs
 ```{r}
@@ -114,6 +78,7 @@ bird_counts %>%
 Note: NAs in several columns we want to use in analysis, tbc how to deal with these during analysis.
 
 ### Check numeric ranges
+
 ```{r}
 min_lat <- bird_counts %>% 
   select(lat) %>% 
@@ -166,6 +131,7 @@ bird_counts %>%
   arrange(desc(count)) %>% 
   head(n = 50)
 ```
+
 Six records with 99,999 as count (mostly puffins), then several records with 10,000 - 50,000. The bird codes data notes that count is "Total no of individuals counted in 10 min (1 – 50,000; 99999 = over 100,000). Therefore, these high values are real, do not discount as errors / missing values. However, do take this encoding into account when calculating counts (at least <calculated value>).
 
 **Outcome: no cleaning required; for assertive programming, verify count is numeric type and in range: 1 to 99,999 (since this is how data is meant to be encoded).**
@@ -300,21 +266,16 @@ Assertive programming to check input data is valid before analysing:
 * verify lat range: -90 to + 90
 * verify count range: 1 to 99,999 (since this is how data is meant to be encoded)
 * do not do anything to verify record ID, to keep open for any IDs
-  
 
-# Analysis before cleaning
+_Note: did not include this in final submission, out of time._
 
-What can I analyse without cleaning? Minimise required cleaning steps.
-
-## Most individual sightings
+### Cleaning: Strip out age and plummage in names
 
 _Task: Which bird had the most individual sightings? Give the bird’s common name, scientific name and species abbreviation._
 
 Look for most frequent bird, where count = 1. Return all 3 names, with count.
-
-### Before cleaning
-
 ```{r}
+# before cleaning
 bird_counts %>% 
   filter(count == 1) %>%  # 20,357 individual sightings
   group_by(species_abbreviation) %>% 
@@ -326,15 +287,16 @@ Without recoding / cleaning bird names, there are 297 rows in the summary table 
 
 So, I do need to clean up these names to get a true total count per bird.
 
-### Cleaning: Strip out age and plummage in names
+Regex patterns to strip out:
 
-regex patterns to strip out
 * at end $
 * Age: AD or IMM or JUV - include leading space, and * at end
 * Plummage for Wandering albatross: PL[0-9]+ - include leading space
 * Plummage phase: LGHT or DRK or M - but note M is not specific enough to remove it, M can be present in other parts of the name, so ignore for now
 
-```{r}
+```{r clean_bird_names}
+# this code chunk is included in the cleaning.R script
+
 bird_counts_clean <- bird_counts # make "clean" version
 
 bird_counts_clean <- bird_counts_clean %>% 
@@ -368,9 +330,9 @@ bird_counts_clean <- bird_counts_clean %>%
 # Note: not yet dealing with M at end, or F without space
 ```
 
-This works, but looks like it should be a function. Meh, for now.
+This works. It may be better as a function (it's repetitive) - but I did not manage to write one.
 
-Write a function
+Pseudocode for function:
 
 function(df, column){
 patterns <- c("regex", "regex")
@@ -380,34 +342,44 @@ for pattern in patterns{
 }
 }
 
-This beginning of a for loop now works - finish / clean up later, if time:
-```{r, eval = FALSE}
-patterns <- c("\\ sensu\\ lato*",  "\\ AD*", "\\ PL[0-9]*")
+```{r}
+# after cleaning common_name column:
+bird_counts_clean %>% 
+  filter(count == 1) %>%  # 20,357 individual sightings
+  group_by(common_name, sci_name, species_abbreviation) %>% 
+  summarise(lone_sightings = n()) %>% 
+  arrange(desc(lone_sightings))
+```
+If group by common_name only, now 153 rows, some with common_names including various different possible birds (separated by / ). However, **Wandering albatross has the most individual sightings** by far, so I assume that this answer won't change even if I try to deal with the not-quite-specified birds.
 
-bird_counts_clean_loop <- bird_counts
+Note, if group only by common_name, there are 150 rows, which indicates there are 3 rows for which common name : sci name : species abbreviation is not 1:1:1 relationship (e.g. Adelie Penguin). I can come back to inspect this later, if time. For now, looking at the top values, I don't think it will change my result.
 
-for (pattern in patterns){
-    bird_counts_clean_loop <- bird_counts_clean_loop %>% 
-      mutate(common_name = str_replace_all(bird_counts_clean_loop$common_name, pattern, ""))
-    }
+# 2: Analysis {#analyse}
+
+First, run the cleaning.R script in `cleaning_scripts/` to produce the clean data in .csv. Then load this in:
+```{r, message = FALSE}
+bird_counts <- read_csv(here("clean_data/bird_counts_raw.csv")) # included here to check "before cleaning" answers
+bird_counts_clean <- read_csv(here("clean_data/bird_counts_cleaned.csv"))
 ```
 
+## 1. Most individual sightings
 
-```{r, eval = FALSE}
-clean_bird_names <- function(df, column){
-  pattern <- "\\ AD*"
-  #for (pattern in patterns){
-    df %>% 
-      mutate(col = str_replace_all(df['col'], pattern, ""))
-    #}
-}
+_Task: Which bird had the most individual sightings? Give the bird’s common name, scientific name and species abbreviation._
+
+Look for most frequent bird, where count = 1.
+
+```{r}
+# using data before cleaning
+bird_counts %>% 
+  filter(count == 1) %>%  # 20,357 individual sightings
+  group_by(common_name) %>% 
+  summarise(lone_sightings = n()) %>% 
+  arrange(desc(lone_sightings)) # 298 rows
 ```
 
-```{r, eval = FALSE}
-clean_bird_names(bird_counts, common_name)
-```
+Without recoding / cleaning bird names, there are 298 rows in the summary table when grouping by common_name, some of which are the same bird with different elements in their common name (such as plummage, age). When grouping by species_abbreviation, there are 297 (also contain plummage and age in the column), so this does not improve matters.
 
-### After cleaning
+So, I do need to clean up these names to get a true total count per bird.
 
 ```{r}
 # after cleaning common_name column:
@@ -415,20 +387,125 @@ bird_counts_clean %>%
   filter(count == 1) %>%  # 20,357 individual sightings
   group_by(common_name, sci_name, species_abbreviation) %>% 
   summarise(lone_sightings = n()) %>% 
-  arrange(desc(lone_sightings)) %>% 
-  head(5)
+  arrange(desc(lone_sightings)) 
 ```
-If group by common_name only, now 153 rows, some with common_names including various different possible birds (separated by / ). However, **Wandering albatross has the most individual sightings** by far, so I assume that this answer won't change even if I try to deal with the not-quite-specified birds.
+If group by common_name only, now 151 rows, some with common_names including various different possible birds (separated by / , e.g. "Shy / white-capped / Salvin's / Chatham mollymawk"). 
 
-Note, if group only by common_name, there are 150 rows, which indicates there are 3 rows for which common name : sci name : species abbreviation is not 1:1:1 relationship (e.g. Adelie Penguin). I can come back to inspect this later, if time. For now, looking at the top values, I don't think it will change my result.
+However, **Wandering albatross (Diomedea antipodensis / exulans; DIOANTEXU) has the most individual sightings** by far, so I assume that this answer won't change even if I try to deal with the not-quite-specified birds.
 
-## Find all the penguins
+## 2. Highest total count of sightings
+
+_Task: Which bird had the highest total count? Give the bird’s common name, scientific name and species abbreviation._
 
 ```{r}
 bird_counts_clean %>% 
-  filter(str_detect(bird_counts_clean$common_name, "(?i)[P]enguin") == TRUE) %>% 
-  group_by(common_name) %>% 
+  group_by(common_name, sci_name, species_abbreviation) %>% 
+  summarise(total_sightings = sum(count)) %>% 
+  arrange(desc(total_sightings)) 
+```
+The **Black-billed gull (Larus bulleri; LARBUL)** has the highest total count of sightings (**7732** birds counted).
+
+## 3. Highest count about lat -30
+
+_Task: Which bird had the highest total count above a latitude of -30?_
+
+If above latitude -30 means more northerly, then we are looking for -30 to 0 (0 is at the equator; and 0 to 90 for northern hemisphere), i.e. lat > -30.
+
+```{r}
+bird_counts_clean %>% 
+  filter(lat > -30) %>% 
+  group_by(common_name, sci_name, species_abbreviation) %>% 
   summarise(total_sightings = sum(count)) %>% 
   arrange(desc(total_sightings))
 ```
+The bird with the highest total count above latitude -30 is the **Wedge-tailed shearwater (Puffinus pacificus; PUFPAC)** with **855 total sightings**.
 
+## 4. Birds sighted alone
+
+_Task: How many different types of birds were only ever seen in groups of 1?_
+
+```{r}
+distinct_lone_bird_types_cn <- bird_counts_clean %>% 
+  filter(count == 1) %>% 
+  select(common_name) %>% 
+  distinct()
+
+distinct_lone_bird_types_sn <- bird_counts_clean %>% 
+  filter(count == 1) %>% 
+  select(sci_name) %>% 
+  distinct()
+
+distinct_lone_bird_types_sa <- bird_counts_clean %>% 
+  filter(count == 1) %>% 
+  select(species_abbreviation) %>% 
+  distinct()
+
+nrow(distinct_lone_bird_types_cn)
+nrow(distinct_lone_bird_types_sn)
+nrow(distinct_lone_bird_types_sa)
+```
+
+Depending on how you determine "bird type", there are **about 150 different bird types** that were spotted alone. Specifically, by "common name", 150; by "scientific name", 142; and by "species_abbreviation", 149.
+
+_Note: These differences may be an artefact from dirty data or a cleaning step. To improve this, I could inspect to understand why common name : scientific name : species abbreviation are not 1:1:1._
+
+## 5. Penguin sightings
+
+_Task: How many penguins were seen? (Hint: there are many types of penguin)_
+
+Assuming penguins have "[P/p]enguin" in their common name:
+```{r}
+# find all the types of penguins, regardless of sightings
+penguins <- bird_counts_clean %>% 
+  filter(str_detect(bird_counts_clean$common_name, "(?i)[P]enguin*") == TRUE) %>% 
+  distinct(common_name)
+penguins
+
+# find all the penguins in the dataset, remove the NAs in count to ensure sums count all sightings
+penguin_sightings <- bird_counts_clean %>% 
+  filter(str_detect(bird_counts_clean$common_name, "(?i)[P]enguin") == TRUE) %>% 
+  group_by(common_name, sci_name, species_abbreviation) %>% 
+  summarise(total_sightings = sum(count, na.rm = TRUE)) %>% 
+  arrange(desc(total_sightings))
+penguin_sightings
+```
+```{r}
+# sum the sightings of all the penguins to find total sightings
+sum(penguin_sightings$total_sightings, na.rm = TRUE)
+```
+
+There were **158 penguins, of 7 different types** sighted overall.
+
+Alternatively, we can look for Genus names for penguins within the scientific name: 
+* Aptenodytes
+* Pygoscelis
+* Eudyptula
+* Spheniscus
+* Megadyptes
+* Eudyptes
+(From [wikipedia](https://en.wikipedia.org/wiki/Penguin))
+
+Note there is "Penguin (unidentified)" in common name with NA in scientific name, so also include this case:
+``` {r}
+# find all the types of penguins by genus names, regardless of sightings
+penguins_by_genus <- bird_counts_clean %>%
+  filter((str_detect(bird_counts_clean$sci_name, "Aptenodytes*|Pygoscelis*|Eudyptula*|Spheniscus*|Megadyptes*|Eudyptes*") == TRUE) | (str_detect(bird_counts_clean$common_name, "Penguin (unidentified)*") == TRUE)) %>% 
+  distinct(sci_name)
+penguins_by_genus
+# finds 6 different species, plus NA for "Penguin (unidentified)"
+
+# sum count of all sightings (remove NA)
+penguin_sightings_by_genus <- bird_counts_clean %>% 
+  filter((str_detect(bird_counts_clean$sci_name, "Aptenodytes*|Pygoscelis*|Eudyptula*|Spheniscus*|Megadyptes*|Eudyptes*") == TRUE) | (str_detect(bird_counts_clean$common_name, "Penguin (unidentified)*") == TRUE)) %>% 
+  group_by(common_name, sci_name, species_abbreviation) %>% 
+  summarise(total_sightings = sum(count, na.rm = TRUE)) %>% 
+  arrange(desc(total_sightings))
+penguin_sightings_by_genus
+```
+
+```{r}
+# sum the sightings of all the penguins to find total sightings
+sum(penguin_sightings_by_genus$total_sightings, na.rm = TRUE)
+```
+
+This approach also finds **158 penguins** (of 7 types).
