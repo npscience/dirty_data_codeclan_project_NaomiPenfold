@@ -5,15 +5,29 @@ output: html_notebook
 
 # Introduction
 
-This is the tidying and analysis of 
+This report is about candy preferences based on data from surveying people around Halloween (including both those who go trick-or-treating and those who do not). Note: more info on the data is available [here](https://www.scq.ubc.ca/so-much-candy-data-seriously/). 
 
-This report details how the data were prepared for analysis as well as the results of the analyses, through the following sections:
+This report was prepared as an output for the Codeclan "Dirty Data" project week, and details how the data from 2015, 2016 and 2017 were prepared for analysis as well as the results of the analyses, through the following sections:
 
 * 1: [Planning](#1-Plan-for-how-to-prepare-data-for-analysis) how to prepare data for analysis
 * 2: [Preparing](#2-Preparing-year-data-for-joining) raw data for joining years to create one dataset
 * 3: [Cleaning](#3-Cleaning-data-values-in-joined-data) joined data ready for analysis
-* 4: [Analyses](#4-Analysis)
+* 4: [Analysis](#4-Analysis)
 * 5: [Reflections](#5-Reflections)
+
+## About the code in this notebook
+
+To run the code in the Analysis section, first run the `data_cleaning_scripts/cleaning.R`. This produces the `clean_data/candy_ratings_allyears_clean.csv` with the tidied data prepared for analysis.
+
+Running the code in the **Preparing** and **Cleaning** sections of this notebook creates several new objects in the R environment. None of these are needed for the subsequent analysis. They are included here to demonstrate the decisions taken in order to produce the `cleaning.R` script.
+
+Running the code in the **Analysis** section creates:
+
+* `candy_ratings_analysis` is the loaded clean data
+* `candy_raters_analysis` is a subset of this clean data that includes the information about each individual rater (without their ratings)
+* `candy_ratings_analysis_num` includes an additional column that encodes the ratings numerically (JOY as +1, MEH as 0, DESPAIR as -1) and is used when calculating popularity of candy items in various analyses
+
+In addition, code in the **Reflections** section produces a vector called `candy_items`, which lists all the candy items included in the cleaned data (note: I have excluded multiple items rated in the survey, where I have deemed them not to be "Candy"). This is an artefact that could be used to improve the `cleaning.R` script (not done within this project).
 
 
 ```{r}
@@ -57,8 +71,6 @@ Which variables do we need to answer the requested analysis questions? We need:
 * To be able to group by year
 * To be able to group by country
 
-Note: more info on the data source [here](https://www.scq.ubc.ca/so-much-candy-data-seriously/).
-
 ## Plan approach for joining data (and making it 'tidy' long format)
 
 Step 1: Make tidy data
@@ -72,7 +84,7 @@ Step 2: Join the tidy dataframes (append rows)
 
 Aim: I want to make one combined df. that looks like the following, whereby 1 rating of 1 candy item by 1 rater in 1 year = 1 observation:
 
-| year <dttm( or int(YYYY)> | id <int> | age <int> | gender <chr> | country <chr> | goes_trick_or_treating <chr or lgl> | candy_item <chr> | rating <chr>  | [And later: rating_value <dbl>] |
+| year <dttm> | id <int> | age <int> | gender <chr> | country <chr> | goes_trick_or_treating <chr or lgl> | candy_item <chr> | rating <chr>  | [And later: rating_value <dbl>] |
 |----|----|----|----|----|----|----|----|----|
 | 2015 | 5058 | 23 | Male | USA | TRUE | Twix | JOY | 1 |
 | 2016 | 1123 | 36 | Female | Canada | FALSE | Twix | DESPAIR | -1 |
@@ -705,7 +717,7 @@ candy_ratings_after_item_cleaning <- candy_ratings  %>%
   mutate(candy_item = str_replace_all(candy_item, "^Q6\\ \\|\\ ", ""),
          candy_item = str_replace_all(candy_item, "^\\[", ""),
          candy_item = str_replace_all(candy_item, "\\]$", "")) %>% 
-  # recode Mary Janes == anonymouse brown globs
+  # recode Mary Janes == anonymous brown globs
   mutate(candy_item = case_when(
         candy_item %in% c("Anonymous brown globs that come in black and orange wrappers", "Anonymous brown globs that come in black and orange wrappers\t(a.k.a. Mary Janes)") ~ "Mary Janes",
         candy_item == "Bonkers" ~ "Bonkers (the candy)",
@@ -755,7 +767,7 @@ candy_ratings_after_item_cleaning %>%
 ## Rating
 
 ```{r}
-candy_ratings_analysis %>% 
+candy_ratings %>% 
   group_by(rating) %>% 
   summarise(count = n())
 ```
