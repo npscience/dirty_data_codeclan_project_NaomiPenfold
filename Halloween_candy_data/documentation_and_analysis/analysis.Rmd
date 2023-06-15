@@ -3,6 +3,19 @@ title: "Halloween candy: analysis report"
 output: html_notebook
 ---
 
+# Introduction
+
+This is the tidying and analysis of 
+
+This report details how the data were prepared for analysis as well as the results of the analyses, through the following sections:
+
+* 1: [Planning](#1-Plan-for-how-to-prepare-data-for-analysis) how to prepare data for analysis
+* 2: [Preparing](#2-Preparing-year-data-for-joining) raw data for joining years to create one dataset
+* 3: [Cleaning](#3-Cleaning-data-values-in-joined-data) joined data ready for analysis
+* 4: [Analyses](#4-Analysis)
+* 5: [Reflections](#5-Reflections)
+
+
 ```{r}
 library(tidyverse)
 library(readxl)
@@ -10,7 +23,9 @@ library(janitor)
 library(here)
 ```
 
-# Load and inspect data
+# 1: Plan for how to prepare data for analysis
+
+## Load raw data
 
 ```{r}
 excel_sheets(here("raw_data/boing-boing-candy-2015.xlsx"))
@@ -28,44 +43,33 @@ x2017 <- read_excel(here("raw_data/boing-boing-candy-2017.xlsx"), sheet = "respo
 ```
 
 
-# Analysis questions
+## Review analysis questions
 
-Note: more info on the data source [here](https://www.scq.ubc.ca/so-much-candy-data-seriously/).
+Which variables do we need to answer the requested analysis questions? We need:
 
-1. What is the total number of candy ratings given across the three years. (Number of candy ratings, not the number of raters. Don’t count missing values)
-2. What was the average age of people who are going out trick or treating?
-3. What was the average age of people who are not going trick or treating?
-4. For each of joy, despair and meh, which candy bar received the most of these ratings?
-5. How many people rated Starburst as despair?
-
-For the next three questions, count despair as -1, joy as +1, and meh as 0.
-6. What was the most popular candy bar by this rating system for each gender in the dataset ?
-7. What was the most popular candy bar in each year?
-8. What was the most popular candy bar by this rating for people in US, Canada, UK, and all other countries?
-
-Which variables do we need to answer the analysis questions? We need:
 * All candy ratings (1 rating of 1 candy bar by 1 rater in 1 year = 1 observation)
 * Age of rater, where available
 * Whether or not the rater goes out trick or treating
 * To be able to summarise count of ratings (joy, meh, despair) for each candy bar
 * Gender of rater, where available
 * To be able to filter for Starburst and count despair ratings
-* To be able to convert ratings to +1, 0, -1 and sum across these 3 (new column)
+* To be able to convert ratings to +1, 0, -1 (new column) and sum across these 3
 * To be able to group by year
 * To be able to group by country
 
-# Approach for joining data (and making it 'tidy' long format)
+Note: more info on the data source [here](https://www.scq.ubc.ca/so-much-candy-data-seriously/).
 
-Step 1: Make tidy data: 
+## Plan approach for joining data (and making it 'tidy' long format)
+
+Step 1: Make tidy data
+
   * We want variables: rater_info (ToT_activity, age, gender, country), rating_year, type of candy bar <chr>, rating (joy, meh, despair) 
   * Make sure variables are in same (and desired) data type in all 3 dfs
   * add a column for year in each dataset
   * add column with NAs for any of the above variables where data does not exist in that year's df 
 
 Step 2: Join the tidy dataframes (append rows)
-* Try tidying each sheet first, then joining all 3 together. Then deal with inconsistent candy bar names in later cleaning step, i.e.:
-  * Make matching variables and rated objects (candy bars) consistent across the 3 dataframes
-  
+
 Aim: I want to make one combined df. that looks like the following, whereby 1 rating of 1 candy item by 1 rater in 1 year = 1 observation:
 
 | year <dttm( or int(YYYY)> | id <int> | age <int> | gender <chr> | country <chr> | goes_trick_or_treating <chr or lgl> | candy_item <chr> | rating <chr>  | [And later: rating_value <dbl>] |
@@ -74,11 +78,13 @@ Aim: I want to make one combined df. that looks like the following, whereby 1 ra
 | 2016 | 1123 | 36 | Female | Canada | FALSE | Twix | DESPAIR | -1 |
 | 2016 | 1123 | 36 | Female | Canada | FALSE | Trail mix | MEH | 0 |
 
-## Variables, rows and data types
+Once joined, I can deal with cleaning data values, such as inconsistent candy bar names and countries.
+
+# 2: Preparing year data for joining
 
 Here, I have inspected the variables within each year's dataset, and decided what to remove, what to keep and how to keep it, to achieve the above aim of combined tidy data.
 
-### 2015
+## 2015 data
 
 ```{r}
 ncol(x2015) # 124 columns
@@ -89,6 +95,8 @@ colnames(x2015)
 glimpse(x2015) # 5630 rows
 # data types: mostly <chr>, some <lgl> at end, 1 <dttm> at beginning
 ```
+
+### 2015 cleaning
 
 Variables to keep/convert:
 
@@ -111,7 +119,9 @@ Decisions on variables to keep/remove:
 * Items kept in include candy that I recognise by name or have identified as candy by searching online, for example:
   * [63] `Pencils`, [88] `Peterson Brand sidewalk chalk`, [91] `Trail mix` - note decided to keep this in as it is a high sugar content snack.
 
-```{r 2015-subset}
+```{r 2015_steps1:3}
+# a tidier version of this code chunk is in cleaning.R script
+
 # keep wanted columns, and put 98-99 (additional ratings) at end
 x2015_subset <- x2015 %>% 
   select(1:17,19:22,24,25,29:32,35:37,39:40,42:44,46:55,57:81,83:89,91,92,96,114,115,98,99)
@@ -183,9 +193,6 @@ Note: this tidy data contains ratings from 5,629 individual raters (with ids 1-5
 
 Currently, this does not include additional JOY and DESPAIR ratings given as free text entries to 2 questions in the raw data.
 
-Note that goes_trick_or_treating is <chr> type.
-Attempted mutate(goes_trick_or_treating = as.logical(goes_trick_or_treating)) =  this coerces to NA, so need different approach to make T/F  values - not done yet.
-
 The above code that is needed to generate the tidy version of 2015 data has been included in `cleaning.R` script; the code to check results has not been included, and neither has code to include the additional ratings columns.
 
 #### Coerced age data
@@ -193,6 +200,8 @@ The above code that is needed to generate the tidy version of 2015 data has been
 Warning: converting age data from <chr> to numeric coerces some values into NAs. Inspect raw data to understand what I might be missing by doing this.
 
 ```{r}
+# this code relies on output generated in earlier chunks: `x2015_subset_converted_sub` and `x2015`
+
 # check for NAs in converted age column
 x2015_id_na_age <- x2015_subset_converted_sub %>% 
   filter(is.na(age)) %>% # 285 rows
@@ -267,7 +276,6 @@ x2015 %>%
 # Timestamp: entered <1 minute apart
 # all answers, including free text fields, are exactly the same
 # consider these duplicates and remove 1573
-  
 ```
 
 #### Additional data not yet in columns
@@ -293,46 +301,13 @@ x2015_additional_despair <- x2015_additional_ratings %>%
   select(id, additional_despair) #1775 rows
 ```
 
-#### Attempt analyses
-
-Try out some analysis Qs on 2015 data, where possible, to check cleaning steps and note what else is required.
-
-##### Total number of ratings in 2015
-
-(Q1: What is the total number of candy ratings given across the three years.)
-
-```{r}
-# total number of ratings in 2015
-x2015_tidy %>% 
-  filter(!is.na(rating)) %>% 
-  group_by(rating) %>% 
-  summarise(count = n()) %>% 
-  summarise(total_count = sum(count)) %>% 
-  pull()
-```
-
-Note the ratings include only JOY, DESPAIR, or NA (where no rating given for a candy bar). There is no MEH in 2015.
-
-##### Candy with the most JOY ratings
-
-(Q4: For each of joy, despair and meh, which candy bar received the most of these ratings?)
-
-```{r}
-# Find candy item with most JOY ratings
-x2015_tidy %>% 
-  filter(rating == "JOY") %>% 
-  group_by(candy_item) %>% 
-  summarise(count = n()) %>% 
-  # arrange(desc(count)) %>% 
-  slice_max(count, n = 2) # include 2nd place as 1st place is generic
-```
-
 #### Summary from tidying 2015
 
 * Not yet cleaned within columns: countries, candy_items, in particular for 2015. Waiting to have full df with all three years, to do this in one go.
 * Not yet added in additional candy_items with JOY/DESPAIR ratings, stored in `x2015_additional_ratings` (subsetted into `x2015_additional_joy` and `x2015_additional_despair`).
 * Any analyses by age or gender will filter out 2015 data because all _NA_ here.
 * Written 2 forms of csv - one wide format for looking at average ages, 1 row = 1 person, one long format for looking at counts of ratings
+* Note: no MEH ratings in 2015 data.
 
 ```{r}
 # read in csv written from cleaning script
@@ -341,7 +316,7 @@ head(tidy_2015)
 ```
 
 
-### 2016
+## 2016 data
 
 ```{r}
 ncol(x2016) # 123 columns
@@ -353,7 +328,7 @@ glimpse(x2016) # 1259 rows
 # data types: mostly <chr>, 1 <lgl> at end, 1 <dttm> at beginning
 ```
 
-#### 2016 cleaning
+### 2016 cleaning
 
 Follow 2015 cleaning steps, see what needs changing:
 
@@ -389,7 +364,9 @@ Decisions on variables to keep/remove:
   * [94] `Sweetums` - from fictional TV series, but online search suggests some candies made under this name at some point, so possible they could have been handed out at Halloween
   * [103] `Whatchamacallit Bars` - a chocolate-based baked item
 
-```{r}
+```{r 2016_step1}
+# this code chunk is in cleaning.R script
+
 ## step 1: subset to remove unwanted columns
 x2016_subset <- x2016 %>% 
   select(1:5,7:11,13,14,16:20,23:25,28:30,33:37,39:42,44:48,50:68,
@@ -413,7 +390,9 @@ x2016_subset %>%
 ```
 68 rows were coerced to NA. By inspection, none are worth recoding before converting age to numeric.
 
-```{r}
+```{r 2016_step2}
+# this code chunk is in cleaning.R script
+
 ## step 2: clean up included variables to produce required common df structure: 
 # [1]id [2]year [3]age [4]gender [5]country 
 # [6]goes_trick_or_treating [7]candy_item [8]rating
@@ -440,7 +419,9 @@ head(x2016_subset_converted)
 
 #### 3. pivot to long format for tidy data
 
-```{r}
+```{r 2016_step3}
+# this code chunk is in cleaning.R script
+
 ## step 3: make long format tidy data
 # with one column for candy items 7:90, one column for rating
 # expect 1259 x 90 df to become 
@@ -457,7 +438,7 @@ dim(x2016_tidy) # 105,756 x 8
 
 Steps worked, with minimal changes or additional steps compared to 2015. Note 2016 data includes country and gender, not yet inspected for cleaning (to do once all years combined).
 
-### 2017
+## 2017 data
 
 ```{r}
 ncol(x2017) # 120 columns
@@ -469,7 +450,7 @@ glimpse(x2017) # 2460 rows
 # data types: mostly <chr>, some <dbl>, no <lgl>
 ```
 
-#### 2017 cleaning
+### 2017 cleaning
 
 Follow 2015+2016 cleaning steps, see what needs changing:
 
@@ -502,7 +483,9 @@ Decisions on variables to keep/remove:
   * Other items, not food: [12] `Bonkers (the board game)`, [15] `Broken glow stick`, [21] `Cash...`, [26] `Creepy Religious comics...`, [27] `Dental paraphenalia`, [32] `Glow sticks`, [43] `Hugs...`, [69] `Abstained from M&M'ing`, [81] `Real Housewives...` (DVD)
 
 
-```{r}
+```{r 2017_step1}
+# this code chunk is in cleaning.R script
+
 ## step 1: subset to remove unwanted columns
 x2017_subset <- x2017 %>% 
   select(1:5,7:11,13,14,16:20,23:25,28:30,33:37,39:42,44:48,50:68,
@@ -540,18 +523,14 @@ Some age data to recode:
 
 | ID | Age_raw | Action |
 |----|----|----|
-| 90278186 | See question 2 | check raw data: "I'd rather not say" - nothing to recode |
+| 90278186 | See question 2 | checking raw data shows "I'd rather not say" - nothing to recode |
 | 90280448 | sixty-nine | recode to 69 |
 | 90280466 | 46 Halloweens. | Assume means 46, recode |
 | 90292907 | 59 on the day after Halloween | recode to 58 |
 
-```{r}
-x2017_subset %>% 
-  filter(`Internal ID` == 90278186)
-```
+```{r 2017_step2}
+# this code chunk is in cleaning.R script
 
-
-```{r}
 ## step 2: clean up included variables to produce required common df structure: 
 # [1]id [2]year [3]age [4]gender [5]country 
 # [6]goes_trick_or_treating [7]candy_item [8]rating
@@ -585,7 +564,9 @@ tail(x2017_subset_converted)
 
 #### 3. pivot to long format for tidy data
 
-```{r}
+```{r 2017_step3}
+# this code chunk is in cleaning.R script
+
 ## step 3: make long format tidy data
 # with one column for candy items, one column for rating
 # expect 2460 x 89 df to become 
@@ -607,26 +588,30 @@ Join by binding columns: requires columns to match name-wise but not in same ord
 # Dim to expect:
 sum(nrow(x2015_tidy),nrow(x2016_tidy),nrow(x2017_tidy)) # 753,368 rows x 8 cols
 
-# Bind rows
+# Bind rows -- this line is in cleaning.R script
 candy_ratings_allyears <- bind_rows(x2015_tidy, x2016_tidy, x2017_tidy)
 
 dim(candy_ratings_allyears) # 753,368 rows x 8 cols
 ```
 
 
-# Inspect data within
+# 3: Cleaning data values in joined data
 
 * find missing values, NAs
 * clean up country column - need USA, Canada, UK, all other countries
   * note in 2016 there is age data in the country column!
 * clean up any other data, e.g. candy item; check ratings are consistent
 
-## Load in from new csv
+## Load in joined data
+
+Joined data created in cleaning.R script
 
 ```{r}
 candy_ratings <- read_csv("../clean_data/candy_ratings_allyears.csv")
 ```
-Currently rater info is duplicated many times (once per each candy item rated). First collapse the data to look at rater info only without ratings.
+
+Currently rater info is duplicated many times (once per each candy item rated). Collapse the data to look at individual rater info (without all their ratings).
+
 ```{r}
 candy_raters <- candy_ratings %>% 
   select(id,year,age,gender,country,goes_trick_or_treating) %>% 
@@ -635,7 +620,7 @@ candy_raters <- candy_ratings %>%
 dim(candy_raters) # 9348 raters
 ```
 
-### Age
+## Age
 
 ```{r}
 # check min and max ages
@@ -648,7 +633,6 @@ candy_raters %>%
 
 ```{r}
 # check low ages
-
 candy_raters %>% 
   filter(!is.na(age)) %>% 
   filter(age <= 5)
@@ -681,9 +665,9 @@ The oldest person that ever lived, as far as is verified so far, was 122 years o
 
 Do not remove whole rows for the entries that do not match, since people may have included an incorrect age in this data as a way to obfuscate, but still have entered real ratings data.
 
-Instead, for age > 125, recode age as NA.
+Instead, filter for age 1-125 when analysing age data.
 
-### Gender
+## Gender
 
 ```{r}
 candy_raters %>% 
@@ -692,7 +676,7 @@ candy_raters %>%
 ```
 That looks clean enough.
 
-### Goes trick or treating
+## Goes trick or treating
 
 ```{r}
 candy_raters %>% 
@@ -701,18 +685,20 @@ candy_raters %>%
 ```
 That looks clean enough too.
 
-### Candy items
+## Candy items
 
 ```{r}
 # inspect candy_items (cleaning steps below)
 candy_ratings %>% 
   group_by(candy_item) %>%
   summarise(count = n())
-# start: 182 distinct items, aiming for ~85 from knowledge of data
+# start: 182 distinct items
 ```
 
 Cleaning script for candy_items:
-```{r}
+```{r clean_candy}
+# this code chunk is included in cleaning.R script
+
 # make temp df to check cleaning progress
 candy_ratings_after_item_cleaning <- candy_ratings  %>% 
   # remove unwanted strings to standardise candy items
@@ -738,22 +724,6 @@ candy_ratings_after_item_cleaning <- candy_ratings  %>%
   ))
 ```
 
-```{r}
-candy_ratings %>% 
-  filter(str_detect(.$candy_item, "marties"))
-```
-
-```{r}
-# re-inspect candy_item after cleaning
-candy_ratings_after_item_cleaning %>% 
-  group_by(candy_item) %>%
-  summarise(count = n())
-
-# inspect candy_item_type after cleaning
-candy_ratings_after_item_cleaning %>% 
-  group_by(candy_item_type) %>%
-  summarise(count = n())
-```
 Cleaning steps to make candy items consistent:
 
 Start: 182 distinct items, aiming for ~85 from knowledge of data:
@@ -770,7 +740,19 @@ Start: 182 distinct items, aiming for ~85 from knowledge of data:
 
 Candy item cleaning complete --> added to cleaning script.
 
-### Rating
+```{r}
+# re-inspect candy_item after cleaning
+candy_ratings_after_item_cleaning %>% 
+  group_by(candy_item) %>%
+  summarise(count = n())
+
+# inspect candy_item_type after cleaning
+candy_ratings_after_item_cleaning %>% 
+  group_by(candy_item_type) %>%
+  summarise(count = n())
+```
+
+## Rating
 
 ```{r}
 candy_ratings_analysis %>% 
@@ -780,7 +762,7 @@ candy_ratings_analysis %>%
 
 Data looks clean, expected categories.
 
-### Country
+## Country
 
 ```{r}
 # countries before cleaning
@@ -790,9 +772,9 @@ candy_raters %>%
 # starts with 168 distinct values
 ```
 
-Note: the following cleaning steps can be repeated on the full tidy dataset (candy_ratings) because here the country entries are just repeated many times for each individual rating observation - the cleaning steps will catch all the repeats.
+```{r clean_country}
+# Note: this code chunk is part of the cleaning.R script
 
-```{r}
 # make vector of all misstypings of USA
 USAs <- candy_raters %>% 
   mutate(country = str_to_upper(country)) %>%
@@ -807,7 +789,6 @@ USAs <- candy_raters %>%
   filter(USA == TRUE) %>%
   select(country) %>% 
   pull() # 55 values
-
 
 # clean country column
 candy_raters_after_country_cleaning <- candy_raters %>%
@@ -829,13 +810,13 @@ candy_raters_after_country_cleaning <- candy_raters %>%
     .default = country)) %>% 
   mutate(country_type = case_when(
     !(country %in% c("UK","US","CANADA", NA_character_)) ~ "Other",
+    country == "CANADA" ~ "Canada", # for aesthetics
     .default = country))
 ```
 
 Cleaning steps to make candy items consistent:
 
-Start: 168 distinct items, aiming to recode all USA, UK, Canada, and leave the rest (as other countries).
-
+* Start: 168 distinct items, aiming to recode all USA, UK, Canada, and leave the rest (as other countries).
 * Make all uppercase --> 138 rows
 * Deal with USA:
   * one entry that contains "USA" is "NOT THE USA OR CANADA" so first, recode this to NA_character_ --> 137 rows
@@ -849,24 +830,20 @@ Start: 168 distinct items, aiming to recode all USA, UK, Canada, and leave the r
 * Recode "ESPAÑA" to "SPAIN" --> 63 rows
 * Recode contains "CASCADIA" to "CASCADIA" --> 62 rows
 * Recode nonsense answers to NA_character_:
-  * "\\ ONE":
+  * "\\ ONE" picks up:
     * THERE ISN'T ONE FOR OLD MEN
     * THIS ONE
     * ONE OF THE BEST ONES
   * several other strange entries
-  --> 41 rows
+  --> now 41 rows
 * Note some special cases remain:
   * CASCADIA - is North West America (including both Canada and US states)
   * EUROPE - could include UK, but not specific enough as a location
-* Make a new column to use with UK/US/Canada/Other where non-UK/US/Canada/NA are encoded as "other countries")
+* Make a new column to use with UK/US/Canada/Other where non-UK/US/Canada/NA are encoded as "Other")
 
-```{r}
-# replace NA ages where numbers are present in country column, before making age a number
-candy_raters %>% 
-  mutate(country = str_to_upper(country)) %>% 
-  filter(str_detect(.$country, "EUA"))
-```
+Country cleaning complete --> added to cleaning script.
 
+Note: these cleaning steps can be repeated on the full tidy dataset (candy_ratings) because here the country entries are just repeated many times for each individual rating observation - the cleaning steps will catch all the repeats.
 
 ```{r}
 # re-inspect countries after cleaning
@@ -874,21 +851,14 @@ candy_raters_after_country_cleaning %>%
   distinct(country, country_type)
 ```
 
-### Summary from inspecting data:
 
-General:
-* filter for age <= 1 & >= 125 when looking at age
-* for country, recode any [0-9] as NA_character_ = specifically: id = 20172213 has country = 1
-
-# Analysis
-
-Currently using `candy_ratings_allyears_clean` output from cleaning script
+# 4: Analysis
 
 ```{r}
-# df to analyse for individual ratings
+# read in file written after cleaning as df to analyse for individual ratings
 candy_ratings_analysis <- read_csv("../clean_data/candy_ratings_allyears_clean.csv")
 
-# subset of df to use for individual raters
+# subset df to analyse info about individual raters
 candy_raters_analysis <- candy_ratings_analysis %>% 
   select(id,year,age,gender,country,goes_trick_or_treating) %>% 
   unique()
@@ -908,11 +878,9 @@ candy_ratings_analysis %>%
 
 Across 2015, 2016 and 2017, a total of **636,754 ratings** were provided.
 
-(Here, I have not filtered out strange ages, since people can enter incorrect info into the age field while also providing real ratings.)
-
 ## Q2+3: Average age by trick-or-treating activity
 
-**REDO: once recoded age from country column (2016 data issue)**
+For these analyses, I have filtered the age data to only include entries in the range 1-125 years.
 
 ```{r}
 candy_raters_analysis %>% 
@@ -924,10 +892,10 @@ candy_raters_analysis %>%
 ```
 
 _Q2. What was the average age of people who are going out trick or treating?_
-Q2: Of the 929 trick-or-treaters who provided valid age data (age 1-125 years), the average age was 35 years.
+Q2: Of the 931 trick-or-treaters who provided valid age data (age 1-125 years), the average age was 35 years.
 
 _Q3. What was the average age of people who are not going trick or treating?_
-Q3: Of the 7,877 raters who did not go out trick-or-treating, the average age was 39 years.
+Q3: Of the 7,886 raters who did not go out trick-or-treating, the average age was 39 years.
 
 
 ## Q4: Candy items most-rated for each rating
@@ -935,45 +903,58 @@ Q3: Of the 7,877 raters who did not go out trick-or-treating, the average age wa
 _Q4. For each of joy, despair and meh, which candy bar received the most of these ratings?_
 
 ```{r}
-# most JOY rated candy bar
+# looking by individual candy_items
 candy_ratings_analysis %>% 
-  select(candy_item, candy_item_type, rating) %>% 
+  group_by(candy_item, rating) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count)) %>% 
+  ungroup() %>% 
+  group_by(rating) %>% 
+  slice(1) %>% 
+  arrange(desc(count))
+```
+The individual candy item with the most JOY ratings was **"Any full-sized candy bar"**, with the most "MEH" ratings was **"Lollipops" (1,570 MEH ratings)**, and with the most "DESPAIR" ratings was **"Mary Janes" (10,676 DESPAIR ratings)**.
+
+"Any full-sized candy bar" and "Lollipops" are fairly generic items, so let's look at the top 5 most-rated as JOY and MEH:
+
+```{r}
+# most JOY rated candy items
+candy_ratings_analysis %>% 
+  select(candy_item, rating) %>% 
   filter(rating == "JOY") %>% 
-  #group_by(candy_item) %>% 
-  group_by(candy_item_type) %>% 
+  group_by(candy_item) %>% 
   summarise(count = n()) %>% 
-  arrange(desc(count))
+  arrange(desc(count)) %>% 
+  head(5)
 ```
-
-The individual candy item with the most "JOY" ratings was **"Any full-sized candy bar" (7588 JOY ratings)**. This is generic, so the second-most JOY-rated candy item is also notable: **"Reese's Peanut Butter Cups" (7368 JOY ratings)**. However, when looking by type of candy item, the candy type with the most "JOY" was **"M&M's"** (of any type: blue, independent, etc; **total 20,257 JOY ratings**).
+Here, we find that **Reese's Peanut Butter Cups** are the second-most-rated as JOY, after the generic "Any full-sized candy bar".
 
 ```{r}
-# most MEH rated candy bar
+# most MEH rated candy items
 candy_ratings_analysis %>% 
-  select(candy_item, candy_item_type, rating) %>% 
+  select(candy_item, rating) %>% 
   filter(rating == "MEH") %>% 
-  #group_by(candy_item) %>% 
-  group_by(candy_item_type) %>% 
+  group_by(candy_item) %>% 
   summarise(count = n()) %>% 
-  arrange(desc(count))
+  arrange(desc(count)) %>% 
+  head(5)
 ```
+Here, we find that **Bonkers** is the specific item with the most MEH ratings, the generic "Any full-sized candy bar" and "Hard Candy" entries.
 
-The individual candy item with the most "MEH" ratings was **"Lollipops" (1570 MEH ratings)**. This is generic, and in second place, is "Hard Candy" (also generic). The first specific candy item is in third place, **"Bonkers (the candy)" (1488 MEH ratings)**.
-
-However, again when looking by type of candy item, the results are different: the candy type with the most "MEH" was again **"M&M's"** (of any type: blue, independent, etc; **total 5,409 MEH ratings**). The top 4 MEH-rated candy items here are all types of candy that I grouped earlier (M&Ms, Jolly Rancher, Smarties, Licorice).
 
 ```{r}
-# most DESPAIR rated candy bar
+# looking by candy_item_type
 candy_ratings_analysis %>% 
-  select(candy_item, candy_item_type, rating) %>% 
-  filter(rating == "DESPAIR") %>% 
-  #group_by(candy_item) %>% 
-  group_by(candy_item_type) %>% 
+  group_by(candy_item_type, rating) %>% 
   summarise(count = n()) %>% 
+  arrange(desc(count)) %>% 
+  ungroup() %>% 
+  group_by(rating) %>% 
+  slice(1) %>% 
   arrange(desc(count))
 ```
 
-The individual candy item with the most "DESPAIR" ratings was **"Mary Janes" (10,676 DESPAIR ratings)**. This result is the same whether looking at individual candy items or type of candy items.
+When looking by candy_item_type, M&Ms receive a lot of ratings when combined across all the different types of M&M, and become most-rated in both JOY and MEH.
 
 ## Q5: Starburst DESPAIR
 
@@ -985,11 +966,12 @@ candy_ratings_analysis %>%
   summarise(count = n()) %>% 
   pull()
 ```
+
 1,989 people rated Starbust as DESPAIR.
 
 ## Q6: Most popular candy by gender
 
-For Qs6-8, count despair as -1, joy as +1, and meh as 0. Here, I assign values to represent the assumption that JOY is a positive rating of popularity, DESPAIR detracts, and MEH is neutral, and assume the average rating value is an indication of overall popularity.
+For Qs6-8, count despair as -1, joy as +1, and meh as 0. Here, I assume the average rating value is an indication of overall popularity.
 
 ```{r}
 # first make a numeric rating value column to use
@@ -1005,31 +987,35 @@ candy_ratings_analysis_num <- candy_ratings_analysis %>%
 
 _Q6. What was the most popular candy bar by this rating system for each gender in the dataset?_
 
-Here, I group "I'd rather not say" and NA together as an "unknown" category of gender.
 ```{r}
 candy_ratings_analysis_num %>% 
-  ## Toggle filter to see popularity of candy items for each gender (including unknown / NA):
-  #filter(gender == "Female") %>% 
-  #filter(gender == "Male") %>% 
-  filter(gender %in% c("I'd rather not say", NA_character_)) %>% 
-  ## Toggle group_by to see popularity of individual candy items or types of candy item
-  #group_by(candy_item) %>%
-  group_by(candy_item_type) %>%
-  summarise(popularity = mean(rating_num, na.rm = TRUE)) %>% 
-  arrange(desc(popularity))
+  group_by(gender, candy_item) %>%
+  summarise(popularity = mean(rating_num, na.rm = TRUE)) %>%
+  arrange(desc(popularity)) %>% 
+  ungroup() %>% 
+  group_by(gender) %>% 
+  slice(1) %>% 
+  ungroup()
 ```
-Results:
 
-| Gender | Item/type | Most popular | Popularity |
-|----|----|-----|----|
-| Female | Either | (1) Any full-sized candy bar | (1) 0.859 |
-| "" | "" | (2) Reese’s Peanut Butter Cups | (1) 0.754 |
-| Male | Either | (1) Any full-sized candy bar | (1) 0.850 |
-| "" | "" | (2) Reese’s Peanut Butter Cups | (1) 0.781 | 
-| Unknown | Either | (1) Any full-sized candy bar | (1) 0.858 |
-| "" | "" | (2) Reese’s Peanut Butter Cups | (1) 0.812 |
+The generic **Any full-sized candy bar** is the most popular regardless of gender.
 
-It doesn't matter whether I analyse by individual candy items or types of candy item, the results are the same. Furthermore, the same candy items come top in any gender category: the generic **Any full-sized candy bar** is the most popular, and second place is the specific item: **Reese's Peanut Butter Cups**.
+```{r}
+# filter out non-specific candy bar:
+candy_ratings_analysis_num %>% 
+  filter(candy_item != "Any full-sized candy bar") %>% 
+  group_by(gender, candy_item) %>%
+  summarise(popularity = mean(rating_num, na.rm = TRUE)) %>%
+  arrange(desc(popularity)) %>% 
+  ungroup() %>% 
+  group_by(gender) %>% 
+  slice(1) %>% 
+  ungroup()
+```
+
+Filtering this out shows that **Reese's Peanut Butter Cups** are the most popular for respondents who identified as male or female.
+
+(Note: It doesn't matter whether I analyse by individual candy items or types of candy item, the results are the same.)
 
 ## Q7: Most popular candy by year
 
@@ -1037,27 +1023,91 @@ _Q7. What was the most popular candy bar in each year? Count despair as -1, joy 
 
 ```{r}
 candy_ratings_analysis_num %>% 
-  filter(gender %in% c("I'd rather not say", NA_character_)) %>% 
-  ## Toggle group_by to see results by year
-  #filter(year == 2015) %>% 
-  #filter(year == 2016) %>% 
-  filter(year == 2017) %>% 
-  ## Toggle group_by to see popularity of individual candy items or types of candy item
-  #group_by(candy_item) %>%
-  group_by(candy_item_type) %>%
+  group_by(year, candy_item) %>%
   summarise(popularity = mean(rating_num, na.rm = TRUE)) %>%
-  arrange(desc(popularity))
+  arrange(desc(popularity)) %>% 
+  ungroup() %>% 
+  group_by(year) %>% 
+  slice(1) %>% 
+  ungroup()
+```
+The generic "Any full-sized candy bar" is most popular in every year. 
+
+```{r}
+# filter out non-specific candy bar:
+candy_ratings_analysis_num %>% 
+  filter(candy_item != "Any full-sized candy bar") %>% 
+  group_by(year, candy_item) %>%
+  summarise(popularity = mean(rating_num, na.rm = TRUE)) %>%
+  arrange(desc(popularity)) %>% 
+  ungroup() %>% 
+  group_by(year) %>% 
+  slice(1) %>% 
+  ungroup()
 ```
 
-Answers:
+When I exclude this generic option, Reese's Peanut Butter cups were the most popular item in 2015 and 2017, and Kit Kats in 2016.
 
-* **2015:** (1) **Any full-sized candy bar** (popularity = 0.860); (2) **Reese's Peanut Butter Cups** (popularity = 0.814)
-* **2016:** (1) **Any full-sized candy bar** (popularity = 0.714); (2) **Lindt Truffle (popularity = 0.667)**
-* **2017: (1) Kit Kat (popularity = 0.829)**
-
-(Again, where a generic item has come top, I've noted the first specific item too. And again, the results are the same whether looking at individual candy items or by candy types.)
-
+(Again, the results are the same whether looking at individual candy items or by candy types.)
 
 ## Q8. Most popular candy by country
 
 _Q8. What was the most popular candy bar by this rating for people in US, Canada, UK, and all other countries? Count despair as -1, joy as +1, and meh as 0._
+
+
+```{r}
+candy_ratings_analysis_num %>% 
+  group_by(country_type, candy_item_type) %>%
+  summarise(popularity = mean(rating_num, na.rm = TRUE)) %>%
+  arrange(desc(popularity)) %>% 
+  ungroup() %>% 
+  group_by(country_type) %>% 
+  slice(1) %>% 
+  ungroup()
+```
+
+For all countries, "any full-sized candy bar" was the most popular. This is generic, so let's look again for something more specific.
+
+```{r}
+# Find the most popular candy item after "any full-sized candy bar"
+candy_ratings_analysis_num %>% 
+  filter(candy_item_type != "Any full-sized candy bar") %>% 
+  group_by(country_type, candy_item_type) %>%
+  summarise(popularity = mean(rating_num, na.rm = TRUE)) %>%
+  arrange(desc(popularity)) %>% 
+  ungroup() %>% 
+  group_by(country_type) %>% 
+  slice(1) %>% 
+  ungroup()
+```
+
+Here, we find that Reese's Peanut Butter Cups and Kit Kats are the most popular in the USA and Canada, respectively; while Rolos and Lindt Truffles are popular elsewhere in the world.
+
+# 5: Reflections
+
+Once I had prepared 2015 data, it was simple to adapt the same code to prepare 2016 and 2017 data, despite some differences in how these data were encoded (e.g. column names).
+
+I could improve the initial data preparation steps = this currently involves subsetting the raw data using column number, which is the least reproducible and readable way. 
+
+Now that I know the list of candy items that I decide to include in the final dataset (see vector created below), I could instead use this knowledge to filter for only the items in this list, which could then be easily updated (e.g. adding an item to the vector) and/or applied to other years' dataframes. 
+
+```{r}
+# create vector of candy item names to include in final data, based on those included currently
+candy_items <- candy_ratings_analysis %>% 
+  select(candy_item) %>% 
+  unique() %>% 
+  pull()
+```
+
+The new data preparation flow could be:
+
+  * 1: add year and id columns
+  * 2: pivot to long (for all columns that include answers to survey questions after the rater information)
+  * 3: remove remaining unwanted columns (e.g. State/Province), clean the colnames
+  * 4: bind each year's data together
+  * 5: filter candy_item for only the values I want to keep (using str_detect(the vector of candy_items as below))
+  * 6: clean the data values (candy_item, country)
+  
+Another way I could improve this would be to use assertive programming to verify that the data looks as it should before proceeding, e.g. that the data types are as expected, that the age data is within a reasonable range (and if not, prompt the user to inspect this first).
+
+A third way to improve would be to include the additional JOY and DESPAIR ratings given in the free text box answers near the end of the survey in each year.

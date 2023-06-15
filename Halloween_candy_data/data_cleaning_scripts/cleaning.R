@@ -179,8 +179,25 @@ write_csv(x2017_tidy, "clean_data/2017_clean_long.csv")
 candy_ratings_allyears <- bind_rows(x2015_tidy, x2016_tidy, x2017_tidy)
 write_csv(candy_ratings_allyears, "clean_data/candy_ratings_allyears.csv")
 
-# Make candy item names consistent -----
+# Clean candy items and country data ----
 
+## First, make vector of different ways USA has been entered
+# make vector of all misstypings of USA
+USAs <- candy_ratings_allyears %>% 
+  mutate(country = str_to_upper(country)) %>%
+  filter(!is.na(country)) %>% 
+  distinct(country) %>% 
+  arrange(desc(country)) %>% 
+  # enter TRUE if country may be USA
+  mutate(USA = str_detect(.$country, "^U") | str_detect(.$country, "^THE") | str_detect(.$country, "STAT|USA|TRUMPISTAN|AAAYYYYYY|MERICA|AMERC|MUR|YORK|JERSEY|PITTSBURGH|CAROLINA|CALIFORNIA|ALASKA")) %>% 
+  filter(USA == TRUE) %>% 
+  # filter out non-USA entries (assume unhinged states is USA)
+  mutate(USA = !(str_detect(.$country, "^NOT") | str_detect(.$country, "N\\.|KIN|UK|UD|UAE|U.K.|OLD|CASCADIA|NETHERLANDS"))) %>%
+  filter(USA == TRUE) %>%
+  select(country) %>% 
+  pull() # 55 values
+
+## Clean candy items and country data:
 candy_ratings_allyears_clean <- candy_ratings_allyears  %>% 
   # remove unwanted strings to standardise candy items
   mutate(candy_item = str_replace_all(candy_item, "^Q6\\ \\|\\ ", ""),
@@ -202,7 +219,31 @@ candy_ratings_allyears_clean <- candy_ratings_allyears  %>%
     str_detect(.$candy_item, "Licorice") ~ "Licorice",
     str_detect(.$candy_item, "Jolly Rancher") ~ "Jolly Rancher",
     .default = candy_item
-  ))
+  )) %>% 
+  # clean country columns
+  mutate(country = str_to_upper(country)) %>% 
+  mutate(country = if_else(country == "NOT THE USA OR CANADA", NA_character_, country)) %>% 
+  mutate(country = case_when(country %in% USAs ~ "USA", .default = country)) %>% 
+  mutate(country = case_when(
+    str_detect(.$country, "^UNITED") ~ "UK",
+    str_detect(.$country, "UK|U\\.K\\.|ENGLAND|ENDLAND") ~ "UK",
+    str_detect(.$country, "\\`$") ~ "CANADA",
+    str_detect(.$country, "CAN$") ~ "CANADA",
+    str_detect(.$country, "THE\\ NETHERLANDS") ~ "NETHERLANDS",
+    str_detect(.$country, "^ESPA") ~ "SPAIN",
+    str_detect(.$country, "CASCADIA") ~ "CASCADIA",
+    str_detect(.$country, "^[0-9]+") ~ NA_character_,
+    str_detect(.$country, "\\ ONE|UD|SUBSCRIBE|CANUCK|SOMEWHERE|\\ ABOVE|NEVERLAND|NARNIA") ~ NA_character_,
+    str_detect(.$country, "INSANITY|ANYMORE|GOD|FEAR|EUA|EARTH|DENIAL|CANAE|ATLANTIS|TROPICAL") ~ NA_character_,
+    str_detect(.$country, "^A$") ~ NA_character_,
+    .default = country)) %>%
+  # create new column with type of country (for analysis Q8)
+  mutate(country_type = case_when(
+    !(country %in% c("UK","USA","CANADA", NA_character_)) ~ "Other",
+    country == "CANADA" ~ "Canada",
+    .default = country))
 
 # Write cleaned data to new csv to load into analysis
 write_csv(candy_ratings_allyears_clean, "clean_data/candy_ratings_allyears_clean.csv")
+
+  
