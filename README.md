@@ -7,7 +7,7 @@ They form part of my public portfolio to demonstrate my skills in data cleaning 
 Please see the READMEs inside each project folder for more details about these projects:
 
 * [Halloween candy data](/Halloween_candy_data)
-* [Seabirds](/Seabirds)
+* [Seabirds](/seabirds)
 
 
 
