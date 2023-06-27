@@ -8,7 +8,7 @@ library(assertr)
 ship_data <- read_excel("raw_data/seabirds.xls", sheet = "Ship data by record ID")
 bird_data <- read_excel("raw_data/seabirds.xls", sheet = "Bird data by record ID")
 
-# Join bird and ship data
+# Join bird and ship data ----
 bird_counts <-  left_join(bird_data, ship_data, by = "RECORD ID") %>% 
   # all 49,019 bird observations x many variables
   # select required variables only
@@ -22,6 +22,7 @@ bird_counts <-  left_join(bird_data, ship_data, by = "RECORD ID") %>%
 
 bird_counts_clean <- bird_counts # make "clean" version to work with next
 
+# clean data ----
 # clean str data within bird info columns to remove age, plummage, 
 # and other unnecessary strings appended after the bird names
 bird_counts_clean <- bird_counts_clean %>% 
@@ -54,6 +55,23 @@ bird_counts_clean <- bird_counts_clean %>%
     "\\ DRK*" = "")))
 # Note: not yet dealing with M at end (for medium plummage) because too non-specific
 # or a random F in one that I saw somewhen through cleaning experimentation
+
+# assert data is valid ----
+
+# verify lat is numeric type and in range -90 to + 90 or is NA
+# verify count is numeric type and in range: 1 to 99,999 or is NA
+# assert common_name, sci_name, species_abbreviation are <chr> type
+bird_counts_clean %>% 
+  verify(is.numeric(lat) & ((lat >= -90 & lat <= 90) | is.na(lat))) %>% 
+  verify(is.numeric(count) & ((count >=1 & count <= 99999) | is.na(count))) %>% 
+  verify(is.character(common_name)) %>% 
+  verify(is.character(sci_name)) %>% 
+  verify(is.character(species_abbreviation))
+
+# if not, script stops and shows assertr error message in console
+# with the failures
+
+# write data to new csv ----
 
 # write subsetted data to new file, note: not yet cleaned data within cols.
 write_csv(bird_counts, "clean_data/bird_counts_raw.csv")
